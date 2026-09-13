@@ -1,0 +1,3505 @@
+<!DOCTYPE html>
+<html lang="en" style="--mad: 0.000;"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cyclopean</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600&amp;family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&amp;family=Zilla+Slab:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{
+  --abyss:#08202b;
+  --tide:#14566b;
+  --shoal:#2e8ba0;
+  --verdigris:#5d8f72;
+  --brine:#a8462f;
+  --occult:#7a5aa8;
+  --occult-dim:#4b3a70;
+  --paper:#e6ebe8;
+  --paper-deep:#d6e0de;
+  --ink:#101c22;
+  --ink-soft:#465a62;
+  --hair:rgba(8,32,43,.28);
+
+  --page-w:8.5in;
+  --page-h:11in;
+  --m-top:.62in;
+  --m-bot:.55in;
+  --m-out:.55in;
+  --m-in:.72in;
+  --body-size:10.5pt;
+}
+
+body.abyssal{
+  --paper:#0b1c24;
+  --paper-deep:#102a34;
+  --ink:#cfdcdb;
+  --ink-soft:#8ba2a8;
+  --tide:#6dc0d6;
+  --abyss:#a9d7e3;
+  --shoal:#3fa8c0;
+  --verdigris:#7fbd9b;
+  --occult:#a98cd6;
+  --occult-dim:#6b56a0;
+  --hair:rgba(160,205,215,.3);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#1a2226;
+  font-family:'Spectral',Georgia,serif;
+  color:var(--ink);
+  padding:98px 0 60px;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+
+/* ══════════ editor chrome ══════════ */
+.bar{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  background:#0d181d;border-bottom:1px solid #26383f;
+  display:flex;flex-wrap:wrap;align-items:center;gap:4px;
+  padding:8px 12px;
+  font-family:'Zilla Slab',sans-serif;
+}
+.bar .brand{
+  font-weight:700;font-size:13px;color:#7fc4d6;letter-spacing:.04em;
+  margin-right:10px;white-space:nowrap;
+}
+.bar .brand em{font-style:normal;color:#5b7079;font-weight:500}
+.bar button{
+  font-family:'Zilla Slab',sans-serif;font-size:12px;font-weight:500;
+  background:#182a32;color:#b6ccd2;border:1px solid #2a4049;
+  padding:5px 9px;border-radius:2px;cursor:pointer;line-height:1.2;
+}
+.bar button:hover{background:#223d47;color:#e3f1f4;border-color:#3d5d69}
+.bar button:focus-visible,.bar select:focus-visible{outline:2px solid #7fc4d6;outline-offset:1px}
+.bar select{
+  font-family:'Zilla Slab',sans-serif;font-size:12px;
+  background:#182a32;color:#b6ccd2;border:1px solid #2a4049;
+  padding:5px 6px;border-radius:2px;cursor:pointer;
+}
+.bar .sep{width:1px;align-self:stretch;background:#26383f;margin:0 5px}
+.bar .brk{flex-basis:100%;height:0}
+.bar .grow{flex:1}
+.bar button.danger:hover{background:#3a1e18;border-color:#7a3527;color:#e8b3a5}
+.bar button.on{background:#2e8ba0;border-color:#2e8ba0;color:#04161d;font-weight:600}
+.hint{
+  position:fixed;bottom:0;left:0;right:0;z-index:50;
+  background:#0d181d;border-top:1px solid #26383f;color:#6d858d;
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+  padding:6px 12px;display:flex;gap:16px;flex-wrap:wrap;
+}
+.hint b{color:#9fb9c0;font-weight:400}
+
+/* ══════════ page ══════════ */
+#doc{display:flex;flex-direction:column;align-items:center;gap:26px}
+.page{
+  width:var(--page-w);height:var(--page-h);
+  background:var(--paper);
+  position:relative;overflow:hidden;
+  box-shadow:0 3px 22px rgba(0,0,0,.55);
+  color:var(--ink);
+}
+.page::before{
+  content:'';position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background:
+    radial-gradient(ellipse at 12% 8%,rgba(20,86,107,.07),transparent 45%),
+    radial-gradient(ellipse at 88% 92%,rgba(93,143,114,.07),transparent 50%);
+}
+.page.overflowing{outline:2px solid var(--brine);outline-offset:-2px}
+.page.picked::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  box-shadow:inset 0 0 0 2px var(--shoal);opacity:.55;
+}
+body.guides .page.picked::after{opacity:.9}
+
+.sheet{
+  position:absolute;
+  top:var(--m-top);bottom:var(--m-bot);
+  display:flex;flex-direction:column;
+}
+.page.recto .sheet{left:var(--m-in);right:var(--m-out)}
+.page.verso .sheet{left:var(--m-out);right:var(--m-in)}
+
+.runner{
+  display:flex;align-items:baseline;gap:10px;
+  border-bottom:1px solid var(--hair);
+  padding-bottom:5px;margin-bottom:14px;flex:0 0 auto;
+  font-family:'Zilla Slab',sans-serif;
+}
+.runner .r-chapter{font-size:9.5pt;font-weight:600;color:var(--tide);letter-spacing:.02em}
+.runner .r-part{font-size:8.5pt;color:var(--ink-soft);font-weight:500;margin-left:auto;text-align:right}
+.runner .keel{
+  flex:0 0 46px;height:5px;align-self:center;
+  background:repeating-linear-gradient(115deg,var(--shoal) 0 4px,transparent 4px 8px);
+  opacity:.7;
+}
+
+.flow{
+  flex:1 1 auto;min-height:0;
+  column-count:2;column-gap:.3in;
+  column-rule:1px solid var(--hair);
+  column-fill:auto;
+  text-align:justify;
+  hyphens:auto;-webkit-hyphens:auto;
+  font-size:var(--body-size);line-height:1.44;
+  overflow:hidden;
+}
+.flow:focus{outline:none}
+body.guides .flow{outline:1px dashed rgba(46,139,160,.35);outline-offset:6px}
+
+.folio{
+  flex:0 0 auto;padding-top:6px;margin-top:8px;
+  border-top:1px solid var(--hair);
+  font-family:'IBM Plex Mono',monospace;font-size:8pt;color:var(--ink-soft);
+  display:flex;
+}
+.page.recto .folio{justify-content:flex-end}
+.page.verso .folio{justify-content:flex-start}
+.folio .pgnum{color:var(--tide);font-weight:600}
+
+.kelp{
+  position:absolute;top:0;bottom:0;width:.5in;
+  opacity:.17;pointer-events:none;color:var(--tide);
+}
+.page.recto .kelp{right:.06in}
+.page.verso .kelp{left:.06in;transform:scaleX(-1)}
+.kelp svg{width:100%;height:100%;display:block}
+.kelp{opacity:calc(.17 + var(--mad,0) * .30)}
+body.bare .kelp{display:none}
+
+/* ══════════ blocks ══════════ */
+.flow > *{margin:0}
+.flow p{margin:0 0 .5em;orphans:2;widows:2}
+
+h2.sec{
+  font-family:'Zilla Slab',sans-serif;font-weight:700;
+  font-size:19pt;line-height:.98;letter-spacing:-.005em;
+  text-transform:uppercase;color:var(--abyss);
+  margin:14px 0 9px;text-align:left;
+  break-after:avoid;position:relative;
+  padding-left:.2in;
+}
+.flow > h2.sec:first-child{margin-top:0}
+h2.sec::before{
+  content:'';position:absolute;left:0;top:.26em;
+  width:.13in;height:.13in;background:var(--shoal);
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%,50% 30%,50% 0);
+}
+h2.sec::after{
+  content:'';display:block;height:3px;margin:5px 0 0 -.2in;
+  background:linear-gradient(90deg,var(--shoal) 0 62%,var(--hair) 62%);
+}
+h2.sec .sigil{display:none}
+
+h3.sub{
+  font-family:'Zilla Slab',sans-serif;font-weight:600;
+  font-size:12pt;line-height:1.15;color:var(--tide);
+  margin:11px 0 4px;text-align:left;break-after:avoid;
+}
+h4.run{
+  font-family:'Zilla Slab',sans-serif;font-weight:600;
+  font-size:10pt;color:var(--abyss);
+  margin:8px 0 2px;text-align:left;break-after:avoid;letter-spacing:.01em;
+}
+
+p.lede::first-letter{
+  font-family:'Zilla Slab',sans-serif;font-weight:700;
+  float:left;font-size:3.05em;line-height:.82;
+  padding:.05em .07em 0 0;color:var(--tide);
+}
+p.cont{text-indent:1.1em}
+
+p.term{padding-left:1em;text-indent:-1em;margin-bottom:.42em}
+p.term b{color:var(--tide);font-weight:600}
+
+.flow ul,.flow ol{margin:0 0 .55em;padding-left:1.15em;text-align:left}
+.flow li{margin-bottom:.16em}
+.flow ul{list-style:none;padding-left:1em}
+.flow ul > li{position:relative}
+.flow ul > li::before{
+  content:'';position:absolute;left:-.82em;top:.45em;
+  width:.05in;height:.05in;background:var(--shoal);transform:rotate(45deg);
+}
+.flow ol{list-style:decimal}
+.flow ol li::marker{font-family:'IBM Plex Mono',monospace;font-size:.85em;color:var(--tide)}
+
+.box{
+  border:1px solid var(--tide);
+  background:var(--paper-deep);
+  padding:11px 10px 8px;margin:12px 0 10px;
+  break-inside:avoid;text-align:left;
+  font-size:9.5pt;line-height:1.38;position:relative;
+}
+.box > .tab{
+  font-family:'Zilla Slab',sans-serif;font-weight:600;font-size:8pt;
+  text-transform:uppercase;letter-spacing:.06em;
+  background:var(--tide);color:var(--paper);
+  display:inline-block;padding:1.5px 7px;margin:-18px 0 6px -11px;
+}
+.box p{margin-bottom:.4em}
+.box p:last-child{margin-bottom:0}
+.box.lore{font-style:italic}
+.box.lore p b,.box.lore p strong{font-style:normal}
+.box.reef{border-color:var(--verdigris)}
+.box.reef > .tab{background:var(--verdigris)}
+.box.alarm{border-color:var(--brine);background:rgba(168,70,47,.09)}
+.box.alarm > .tab{background:var(--brine)}
+
+blockquote.pull{
+  margin:8px 0 10px;padding:2px 0 2px 10px;
+  border-left:3px solid var(--shoal);
+  font-size:11.5pt;line-height:1.3;font-style:italic;
+  color:var(--tide);text-align:left;break-inside:avoid;
+}
+blockquote.pull cite{
+  display:block;margin-top:4px;font-size:8.5pt;font-style:normal;
+  font-family:'Zilla Slab',sans-serif;color:var(--ink-soft);
+}
+
+table.tbl{
+  width:100%;border-collapse:collapse;margin:6px 0 10px;
+  font-size:9pt;break-inside:avoid;text-align:left;
+}
+table.tbl caption{
+  caption-side:top;text-align:left;
+  font-family:'Zilla Slab',sans-serif;font-weight:600;font-size:9pt;
+  color:var(--tide);padding-bottom:3px;
+}
+table.tbl th{
+  background:var(--tide);color:var(--paper);
+  font-family:'Zilla Slab',sans-serif;font-weight:600;font-size:8.5pt;
+  padding:3px 6px;border:1px solid var(--tide);
+}
+table.tbl td{padding:3px 6px;border:1px solid var(--hair);font-variant-numeric:tabular-nums}
+table.tbl tr:nth-child(even) td{background:rgba(20,86,107,.06)}
+
+.profile{
+  font-family:'IBM Plex Mono',monospace;font-size:8.5pt;
+  border-top:2px solid var(--abyss);border-bottom:2px solid var(--abyss);
+  padding:5px 0;margin:6px 0 9px;display:flex;flex-wrap:wrap;gap:4px 12px;
+  break-inside:avoid;text-align:left;
+}
+.profile .st{display:flex;gap:5px;align-items:baseline}
+.profile .st i{font-style:normal;color:var(--ink-soft);font-size:7.5pt}
+.profile .st b{color:var(--abyss);font-weight:600}
+
+hr.wave{
+  border:none;height:8px;margin:9px auto 11px;width:70%;
+  background:radial-gradient(circle at 50% 120%,var(--shoal) 0 2px,transparent 2.5px) 0 0/12px 8px repeat-x;
+  opacity:.75;
+}
+
+.spanall{column-span:all}
+.plate{
+  break-inside:avoid;margin:4px 0 10px;
+  border:1px solid var(--hair);background:rgba(20,86,107,.05);
+  min-height:1.1in;display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace;font-size:8.5pt;color:var(--ink-soft);
+  text-align:center;padding:10px;
+}
+
+.overflag{
+  position:absolute;top:0;right:0;z-index:5;
+  background:var(--brine);color:#fff;
+  font-family:'Zilla Slab',sans-serif;font-weight:600;font-size:9px;
+  padding:3px 7px;display:none;
+}
+.page.overflowing .overflag{display:block}
+
+@media (prefers-reduced-motion:no-preference){
+  .bar button{transition:background .12s,border-color .12s,color .12s}
+}
+
+/* ══════════ living background ══════════ */
+#tent{position:fixed;inset:0;z-index:0;pointer-events:none;display:block}
+body.calm #tent{display:none}
+#doc{position:relative;z-index:2}
+
+/* ══════════ marked sources ══════════ */
+.is-source{position:relative}
+body.guides .is-source{box-shadow:-7px 0 0 -4px var(--shoal)}
+.found{animation:found 2.6s ease-out}
+@keyframes found{
+  0%,25%{background:rgba(46,139,160,.34);box-shadow:0 0 0 4px rgba(46,139,160,.34)}
+  100%{background:transparent;box-shadow:0 0 0 4px rgba(46,139,160,0)}
+}
+
+/* ══════════ the eye ══════════ */
+.eye-wrap{position:fixed;right:18px;bottom:34px;z-index:60;
+  display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.eye-wrap.below{flex-direction:column-reverse}
+.eye-wrap.leftish{align-items:flex-start}
+.eye-wrap.dragging{opacity:.85}
+.eye-btn{
+  width:70px;height:44px;padding:0;border:none;background:none;
+  cursor:grab;touch-action:none;
+  filter:drop-shadow(0 0 11px rgba(122,90,168,.5));
+}
+.eye-wrap.dragging .eye-btn{cursor:grabbing}
+.eye-btn svg{width:100%;height:100%;display:block;overflow:visible}
+.eye-btn .sclera{fill:#0c0916}
+.eye-btn .rim{fill:none;stroke:#8f6fd0;stroke-width:1.6}
+.eye-btn .ir{fill:url(#irisGrad)}
+.eye-btn .pu{fill:#05030c}
+.eye-btn .gl{fill:#d9c8f5;opacity:.5}
+.eye-btn .lid{fill:#120d1f;transform-box:fill-box;transform-origin:50% 50%;animation:blink 7.4s infinite}
+.eye-btn:hover .rim{stroke:#b394ea}
+.eye-btn:focus-visible{outline:2px solid #b394ea;outline-offset:3px}
+@keyframes blink{
+  0%,92%{transform:scaleY(0)}
+  95%{transform:scaleY(1)}
+  98%,100%{transform:scaleY(0)}
+}
+body.calm .eye-btn .lid{animation:none}
+@media (prefers-reduced-motion:reduce){.eye-btn .lid{animation:none}}
+
+.eye-panel{
+  display:none;width:330px;
+  background:#0a0916;border:1px solid #5f4a8c;
+  box-shadow:0 10px 34px rgba(0,0,0,.6);
+}
+.eye-wrap.open .eye-panel{display:block}
+.eye-panel input{
+  width:100%;background:#030d11;color:#dbeaee;border:none;
+  border-bottom:1px solid #1d3d47;
+  font-family:'Zilla Slab',sans-serif;font-size:14px;padding:9px 11px;
+}
+.eye-panel input:focus{outline:none;background:#061419}
+.eye-panel input::placeholder{color:#4d6870}
+.eye-results{max-height:250px;overflow:auto}
+.eye-results .res{
+  display:flex;align-items:baseline;gap:8px;width:100%;text-align:left;
+  padding:7px 11px;cursor:pointer;border-bottom:1px solid #142a32;
+  font-family:'Zilla Slab',sans-serif;font-size:12.5px;color:#b6ccd2;
+  background:none;border-left:none;border-right:none;border-top:none;
+}
+.eye-results .res:hover,.eye-results .res.sel{background:#14343d;color:#e9f6f8}
+.eye-results .res .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eye-results .res .kd{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.06em;
+  text-transform:uppercase;color:#2e8ba0;
+}
+.eye-results .res.txt .kd{color:#54707a}
+.eye-results .res.bk{background:#1a1430;border-bottom-color:#3d3160}
+.eye-results .res.bk .nm{color:#d6c7f2}
+.eye-results .res.bk .kd{color:#a98cd6}
+.eye-results .res.bk:hover,.eye-results .res.bk.sel{background:#2a2049}
+.eye-results .res .pg{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#54707a}
+.eye-empty{padding:10px 11px;color:#54707a;font-family:'Zilla Slab',sans-serif;font-size:12px}
+
+/* ══════════ reader mode ══════════ */
+.readstrip{
+  display:none;position:fixed;top:0;left:0;right:0;z-index:50;
+  background:#0d181d;border-bottom:1px solid #26383f;
+  padding:9px 14px;align-items:center;gap:12px;
+  font-family:'Zilla Slab',sans-serif;font-size:13px;color:#7fc4d6;font-weight:700;
+}
+.readstrip button{
+  margin-left:8px;font-family:'Zilla Slab',sans-serif;font-size:12px;
+  background:#182a32;color:#b6ccd2;border:1px solid #2a4049;
+  padding:5px 9px;border-radius:2px;cursor:pointer;
+}
+body.reading .bar{display:none}
+body.reading .readstrip{display:flex}
+body.reading{padding-top:56px}
+body.reading .flow{outline:none}
+body.reading .page.picked::after{display:none}
+body.reading .is-source{box-shadow:none}
+body.reading .hint{display:none}
+body.reading .eye-wrap{bottom:18px}
+
+/* ══════════ published read-only site ══════════ */
+body.web .bar,
+body.web .hint,
+body.web .modal,
+body.web .overflag,
+body.web .book-head button,
+body.web .rs-edit{display:none !important}
+body.web .flow{outline:none}
+body.web .page.picked::after{display:none}
+body.web .plate{cursor:default}
+body.web .marg{pointer-events:none !important}
+body.web .book-head{justify-content:center}
+.readstrip button.on{background:#2e8ba0;border-color:#2e8ba0;color:#04161d;font-weight:600}
+.readstrip .rs-get{border-color:#5f4a8c;color:#d6c7f2;background:#1a1430}
+.readstrip .rs-get:hover{background:#2a2049;color:#efe6ff}
+.rs-title{font-weight:700;letter-spacing:.03em}
+
+/* ══════════ import modal ══════════ */
+.modal{
+  display:none;position:fixed;inset:0;z-index:80;
+  background:rgba(3,10,14,.78);
+  align-items:flex-start;justify-content:center;padding:70px 20px 20px;
+}
+.modal.open{display:flex}
+.modal-card{
+  width:min(760px,100%);max-height:calc(100vh - 100px);
+  background:#0a161b;border:1px solid #2e8ba0;
+  box-shadow:0 20px 60px rgba(0,0,0,.7);
+  display:flex;flex-direction:column;
+  font-family:'Zilla Slab',sans-serif;
+}
+.modal-hd{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;border-bottom:1px solid #1d3d47;
+  color:#7fc4d6;font-weight:700;font-size:14px;
+}
+.modal-hd button{
+  margin-left:auto;background:none;border:1px solid #2a4049;color:#8ba2a8;
+  width:26px;height:26px;font-size:15px;line-height:1;cursor:pointer;border-radius:2px;
+}
+.modal-hd button:hover{border-color:#a8462f;color:#e8b3a5}
+.modal-bd{padding:14px;overflow:auto}
+.segs{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
+.seg{
+  font-family:'Zilla Slab',sans-serif;font-size:12px;
+  background:#182a32;color:#b6ccd2;border:1px solid #2a4049;
+  padding:6px 11px;border-radius:2px;cursor:pointer;
+}
+.seg.on{background:#2e8ba0;border-color:#2e8ba0;color:#04161d;font-weight:600}
+.modal-note{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;line-height:1.7;
+  color:#6d858d;background:#050f13;border:1px solid #142a32;
+  padding:9px 11px;margin:0 0 10px;white-space:pre-wrap;
+}
+.modal-note b{color:#7fc4d6;font-weight:400}
+#impText{
+  width:100%;min-height:210px;resize:vertical;
+  background:#030d11;color:#dbeaee;border:1px solid #1d3d47;
+  font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.6;
+  padding:10px;
+}
+#impText:focus{outline:none;border-color:#2e8ba0}
+.modal-row{
+  display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:12px;
+  font-size:12px;color:#8ba2a8;
+}
+.modal-row label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.modal-row input[type=checkbox]{accent-color:#2e8ba0;cursor:pointer}
+.modal-row input[type=file]{font-size:11px;color:#6d858d;max-width:200px}
+.modal-row .go{
+  margin-left:auto;background:#2e8ba0;border:1px solid #2e8ba0;color:#04161d;
+  font-family:'Zilla Slab',sans-serif;font-weight:700;font-size:13px;
+  padding:7px 16px;border-radius:2px;cursor:pointer;
+}
+.modal-row .go:hover{background:#3fa8c0;border-color:#3fa8c0}
+
+/* ══════════ living box interiors ══════════ */
+/* one tile of small curls, used as a mask so each box tints its own */
+:root{
+  --curls:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'><g fill='none' stroke='black' stroke-linecap='round'><path d='M8 30c11-10 25-4 27 7s-7 17-14 12-2-13 5-11' stroke-width='2'/><path d='M92 14c14 5 17 19 9 26s-19 2-16-7 12-9 14-2' stroke-width='1.7'/><path d='M26 92c-7 14 3 26 15 25s18-10 13-19-16-6-15 3' stroke-width='2.1'/><path d='M112 78c12 3 19 15 14 24s-19 9-21-1 9-14 15-7' stroke-width='1.6'/><path d='M58 52c10-5 20 2 20 12s-10 15-17 10-3-15 5-14' stroke-width='1.8'/><path d='M64 120c-10 6-9 18 0 22s18-2 16-11-11-9-13-1' stroke-width='1.5'/><path d='M132 40c-9-6-19-1-19 8s8 12 13 8' stroke-width='1.4'/><path d='M6 116c8-7 17-3 18 5' stroke-width='1.3'/></g><g fill='black' opacity='.55'><circle cx='36' cy='22' r='1.6'/><circle cx='104' cy='30' r='1.4'/><circle cx='20' cy='104' r='1.5'/><circle cx='124' cy='92' r='1.3'/><circle cx='74' cy='64' r='1.4'/><circle cx='70' cy='134' r='1.2'/></g></svg>");
+}
+.box{overflow:hidden;isolation:isolate}
+.box > *{position:relative;z-index:1}
+.box::after{
+  content:'';position:absolute;inset:-30%;z-index:0;pointer-events:none;
+  background-color:var(--tide);opacity:.075;
+  -webkit-mask-image:var(--curls);mask-image:var(--curls);
+  -webkit-mask-size:150px 150px;mask-size:150px 150px;
+  -webkit-mask-repeat:repeat;mask-repeat:repeat;
+  animation:crawl 150s linear infinite;
+}
+@keyframes crawl{
+  0%{-webkit-mask-position:0 0;mask-position:0 0}
+  100%{-webkit-mask-position:150px 300px;mask-position:150px 300px}
+}
+.box.reef::after{background-color:var(--verdigris);opacity:.085;animation-duration:190s;animation-direction:reverse}
+.box.alarm::after{background-color:var(--brine);opacity:.07;animation-duration:120s}
+.box.secret::after{background-color:var(--occult);opacity:.15;animation-duration:95s}
+body.calm .box::after{animation:none}
+@media (prefers-reduced-motion:reduce){.box::after{animation:none}}
+
+/* ══════════ sealed lore ══════════ */
+.box.secret{border-color:var(--occult)}
+.box.secret > .tab{background:var(--occult)}
+.box.secret.revealed{border-style:double;border-width:3px;padding:9px 8px 6px}
+
+/* ══════════ ciphered text ══════════ */
+.cipher{position:relative;color:transparent;transition:color .28s ease}
+.cipher::before{
+  content:attr(data-scram);
+  position:absolute;left:0;top:0;right:0;
+  color:var(--occult);opacity:.9;
+  pointer-events:none;transition:opacity .28s ease;
+}
+.cipher:hover,.cipher.open{color:inherit}
+.cipher:hover::before,.cipher.open::before{opacity:0}
+body.guides .cipher{box-shadow:0 1px 0 rgba(122,90,168,.5)}
+
+.box.secret p{position:relative;color:transparent;transition:color .45s ease}
+.box.secret p::before{
+  content:attr(data-scram);
+  position:absolute;left:0;top:0;right:0;
+  color:var(--occult);opacity:.92;
+  pointer-events:none;transition:opacity .45s ease;
+  filter:blur(.25px);
+}
+.box.secret:hover p,.box.secret.revealed p{color:inherit}
+.box.secret:hover p::before,.box.secret.revealed p::before{opacity:0}
+
+/* ══════════ art plates with images ══════════ */
+.plate{cursor:pointer;transition:border-color .12s}
+.plate:hover{border-color:var(--shoal)}
+.plate.has-img{
+  display:block;padding:0;border:none;background:none;min-height:0;text-align:left;
+}
+.plate.has-img img{width:100%;height:auto;display:block;border:1px solid var(--hair)}
+.plate .cap{
+  display:block;font-family:'Zilla Slab',sans-serif;font-size:8pt;
+  color:var(--ink-soft);padding-top:3px;line-height:1.3;
+}
+body.reading .plate{cursor:default}
+body.reading .plate:hover{border-color:var(--hair)}
+
+/* ══════════ dialog ══════════ */
+.ask-msg{
+  color:#b6ccd2;font-size:13px;line-height:1.5;margin:0 0 10px;white-space:pre-line;
+}
+#askInput{
+  width:100%;background:#030d11;color:#dbeaee;border:1px solid #1d3d47;
+  font-family:'IBM Plex Mono',monospace;font-size:13px;padding:8px 10px;margin-bottom:4px;
+}
+#askInput:focus{outline:none;border-color:#2e8ba0}
+#ask .modal-row{justify-content:flex-end}
+
+/* ══════════ previous readers ══════════ */
+.marg{
+  position:absolute;z-index:4;
+  font-family:'Caveat',cursive;
+  font-size:11pt;line-height:1.12;
+  color:#5b4a63;
+  opacity:0;transition:opacity .6s ease;
+  pointer-events:none;
+}
+body:not(.reading) .marg{pointer-events:auto;cursor:text}
+.marg:focus{outline:1px dashed rgba(122,90,168,.6);outline-offset:2px}
+.marg.deep{color:var(--occult);font-size:12pt}
+.marg.frantic{font-weight:600;letter-spacing:-.01em}
+.marg.side{
+  writing-mode:vertical-rl;text-orientation:sideways;
+  max-height:4.4in;
+}
+.page.recto .marg.side{right:.13in}
+.page.verso .marg.side{left:.13in}
+.marg.foot{bottom:.14in;max-width:3.4in}
+body.nomarg .marg{display:none}
+
+/* ══════════ descent panel ══════════ */
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-bottom:6px}
+.fields label{
+  display:flex;align-items:center;gap:8px;justify-content:space-between;
+  font-size:12.5px;color:#8ba2a8;
+}
+.fields input[type=number]{
+  width:88px;background:#030d11;color:#dbeaee;border:1px solid #1d3d47;
+  font-family:'IBM Plex Mono',monospace;font-size:13px;padding:6px 8px;
+}
+.fields input[type=number]:focus{outline:none;border-color:#2e8ba0}
+.fields input[type=checkbox]{accent-color:#2e8ba0;width:15px;height:15px;cursor:pointer}
+.fields input[type=range]{width:120px;accent-color:#2e8ba0;cursor:pointer}
+.fields select{
+  background:#030d11;color:#dbeaee;border:1px solid #1d3d47;
+  font-family:'Zilla Slab',sans-serif;font-size:12px;padding:5px 7px;cursor:pointer;
+}
+.fields button{
+  background:#182a32;color:#b6ccd2;border:1px solid #2a4049;
+  font-family:'Zilla Slab',sans-serif;font-size:12px;padding:5px 11px;
+  border-radius:2px;cursor:pointer;
+}
+.fields button:hover{background:#223d47;color:#e3f1f4}
+.fields .vwrap{display:flex;align-items:center;gap:8px}
+.fields .vnum{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:#2e8ba0;
+  min-width:30px;text-align:right;
+}
+.subrow{
+  display:flex;align-items:center;gap:10px;padding:9px 0;
+  border-bottom:1px solid #142a32;font-family:'Zilla Slab',sans-serif;
+}
+.subrow:last-child{border-bottom:none}
+.subrow .st{flex:1;min-width:0}
+.subrow .sn{font-size:13px;color:#d6c7f2;font-weight:600}
+.subrow .sk{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5f4a8c;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.subrow button{
+  font-family:'Zilla Slab',sans-serif;font-size:12px;
+  background:#1a1430;color:#b6a8d2;border:1px solid #3d3160;
+  padding:5px 11px;border-radius:2px;cursor:pointer;
+}
+.subrow button:hover{background:#2a2049;color:#e3daf4}
+.fields .sect{
+  grid-column:1 / -1;font-family:'IBM Plex Mono',monospace;font-size:9px;
+  letter-spacing:.2em;text-transform:uppercase;color:#4d6870;
+  border-top:1px solid #142a32;padding-top:9px;margin-top:2px;
+}
+.fields .full{grid-column:1 / -1}
+#dRead{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#2e8ba0}
+#madRead{color:#7fc4d6}
+#ask .seg{padding:7px 14px}
+
+
+/* ══════════════════════════════════════════════════════════════
+   SEALED SUB-BOOKS
+   ══════════════════════════════════════════════════════════════ */
+.book{display:none}
+.book.open{display:flex;flex-direction:column;align-items:center;gap:26px;position:relative;z-index:2}
+.book-head{
+  width:var(--page-w);display:flex;align-items:center;gap:10px;
+  font-family:'Zilla Slab',sans-serif;font-size:12px;color:#7fc4d6;
+  background:#0a0916;border:1px solid #5f4a8c;padding:7px 11px;
+}
+.book-head .bt{font-weight:700;letter-spacing:.03em}
+.book-head .bk{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#5f4a8c;margin-left:auto}
+.book-head button{
+  font-family:'Zilla Slab',sans-serif;font-size:11px;
+  background:#1a1430;color:#b6a8d2;border:1px solid #3d3160;
+  padding:4px 9px;border-radius:2px;cursor:pointer;
+}
+.book-head button:hover{background:#2a2049;color:#e3daf4}
+.book .page{box-shadow:0 3px 26px rgba(0,0,0,.6)}
+.book .kelp,.book .marg{display:none}
+
+/* ── EOD: operations order ── */
+.thm-order .page{--paper:#dde3df;--ink:#12181a;--tide:#1d4b3f;--abyss:#0b1512;--hair:rgba(11,21,18,.3)}
+.thm-order .flow{column-count:1;font-family:'IBM Plex Mono',monospace;font-size:9.2pt;line-height:1.5;text-align:left;hyphens:none}
+.thm-order .runner{border-bottom:3px double var(--abyss)}
+.thm-order .runner .keel{background:repeating-linear-gradient(90deg,#0b1512 0 6px,transparent 6px 12px)}
+.thm-order h2.sec{
+  font-family:'Zilla Slab',sans-serif;font-size:12pt;padding-left:0;
+  letter-spacing:.06em;color:var(--abyss);
+}
+.thm-order h2.sec::before{display:none}
+.thm-order h2.sec::after{margin-left:0;background:var(--abyss);height:2px}
+.thm-order h3.sub{font-family:'IBM Plex Mono',monospace;font-size:9.4pt;text-transform:uppercase;letter-spacing:.08em}
+.thm-order p.lede::first-letter{font-size:1em;float:none;color:inherit;font-family:inherit;font-weight:inherit}
+.thm-order p.cont{text-indent:0}
+.thm-order .classbar{
+  background:var(--abyss);color:#dde3df;text-align:center;
+  font-family:'Zilla Slab',sans-serif;font-weight:700;font-size:9pt;
+  letter-spacing:.34em;padding:3px 0;margin-bottom:9px;
+}
+.thm-order .stamp{
+  position:absolute;right:.7in;bottom:1.1in;
+  border:3px solid rgba(29,75,63,.5);color:rgba(29,75,63,.55);
+  font-family:'Zilla Slab',sans-serif;font-weight:700;font-size:15pt;
+  letter-spacing:.12em;padding:5px 13px;transform:rotate(-13deg);pointer-events:none;
+}
+
+/* ── Ithaqua: field dossier ── */
+.thm-blood .page{--paper:#e6e0d4;--ink:#1b1512;--tide:#7a2a1c;--abyss:#3d1710;--hair:rgba(61,23,16,.3)}
+.thm-blood .page::before{
+  opacity:.85;
+  background:
+    radial-gradient(ellipse at 78% 14%,rgba(122,42,28,.30),transparent 26%),
+    radial-gradient(ellipse at 12% 68%,rgba(122,42,28,.18),transparent 20%),
+    radial-gradient(circle at 62% 88%,rgba(61,23,16,.22),transparent 12%);
+}
+.thm-blood .flow{column-count:1;font-family:'IBM Plex Mono',monospace;font-size:9.4pt;line-height:1.6;text-align:left;hyphens:none}
+.thm-blood h2.sec{font-family:'IBM Plex Mono',monospace;font-size:12pt;font-weight:600;padding-left:0;letter-spacing:.02em}
+.thm-blood h2.sec::before{display:none}
+.thm-blood h2.sec::after{margin-left:0;background:var(--abyss)}
+.thm-blood h3.sub{font-family:'IBM Plex Mono',monospace;font-size:9.6pt;text-transform:uppercase}
+.thm-blood p.lede::first-letter{font-size:1em;float:none;color:inherit;font-family:inherit}
+.thm-blood p.cont{text-indent:0}
+.thm-blood .redact{background:#1b1512;color:transparent;user-select:none;padding:0 2px}
+.thm-blood .hand{
+  font-family:'Caveat',cursive;font-size:13pt;color:#7a2a1c;
+  display:block;transform:rotate(-1.2deg);margin:8px 0;
+}
+.thm-blood .stamp{
+  position:absolute;left:.9in;bottom:1.3in;
+  border:3px solid rgba(122,42,28,.5);color:rgba(122,42,28,.6);
+  font-family:'Zilla Slab',sans-serif;font-weight:700;font-size:14pt;
+  letter-spacing:.14em;padding:5px 12px;transform:rotate(9deg);pointer-events:none;
+}
+
+/* ── Nyarlathotep: corporate memo ── */
+.thm-corp .page{--paper:#fbfbfc;--ink:#1c1a22;--tide:#5b3f96;--abyss:#2b2340;--ink-soft:#6b6878;--hair:rgba(40,34,60,.18)}
+.thm-corp .flow{
+  column-count:1;font-family:system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
+  font-size:9.6pt;line-height:1.55;text-align:left;hyphens:none;
+}
+.thm-corp .runner{border-bottom:2px solid #5b3f96}
+.thm-corp .runner .keel{background:linear-gradient(90deg,#5b3f96,#a98cd6);opacity:1}
+.thm-corp h2.sec{
+  font-family:system-ui,sans-serif;font-weight:600;font-size:13pt;
+  text-transform:none;letter-spacing:-.01em;padding-left:0;color:#2b2340;
+}
+.thm-corp h2.sec::before{display:none}
+.thm-corp h2.sec::after{display:none}
+.thm-corp h3.sub{font-family:system-ui,sans-serif;font-size:10pt;color:#5b3f96}
+.thm-corp p.lede::first-letter{font-size:1em;float:none;color:inherit;font-family:inherit}
+.thm-corp p.cont{text-indent:0}
+.thm-corp table.tbl th{background:#5b3f96;border-color:#5b3f96}
+.thm-corp .memohd{
+  border-top:3px solid #5b3f96;border-bottom:1px solid #d8d4e4;
+  padding:8px 0;margin-bottom:11px;font-size:9pt;
+}
+.thm-corp .memohd div{display:flex;gap:8px;padding:1px 0}
+.thm-corp .memohd b{min-width:52px;color:#5b3f96;font-weight:600}
+.thm-corp .fineprint{
+  font-size:6.8pt;line-height:1.35;color:#8d8a99;
+  border-top:1px solid #e2e0e8;padding-top:5px;margin-top:9px;
+}
+
+/* ── Azathoth: technical memorandum ── */
+.thm-nasa .page{--paper:#ffffff;--ink:#111318;--tide:#0b3d91;--abyss:#0b3d91;--ink-soft:#5a6270;--hair:rgba(11,61,145,.22)}
+.thm-nasa .flow{font-size:9.2pt;line-height:1.42}
+.thm-nasa .runner{border-bottom:2px solid #0b3d91}
+.thm-nasa .runner .keel{background:linear-gradient(90deg,#0b3d91 0 60%,#c8102e 60%);opacity:1}
+.thm-nasa h2.sec{
+  font-family:'Zilla Slab',sans-serif;font-size:11.5pt;padding-left:0;
+  color:#0b3d91;letter-spacing:0;
+}
+.thm-nasa h2.sec::before{display:none}
+.thm-nasa h2.sec::after{display:none}
+.thm-nasa h3.sub{font-size:9.6pt;color:#111318;font-family:'Zilla Slab',sans-serif}
+.thm-nasa p.lede::first-letter{font-size:1em;float:none;color:inherit;font-family:inherit}
+.thm-nasa .docno{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-family:'IBM Plex Mono',monospace;font-size:8pt;color:#0b3d91;
+  border-bottom:1px solid rgba(11,61,145,.3);padding-bottom:4px;margin-bottom:8px;
+}
+.thm-nasa .abstract{
+  border-left:3px solid #0b3d91;padding:2px 0 2px 9px;margin-bottom:10px;
+  font-size:8.6pt;line-height:1.45;
+}
+.thm-nasa .abstract b{color:#0b3d91}
+.thm-nasa table.tbl{font-family:'IBM Plex Mono',monospace;font-size:8pt}
+.thm-nasa table.tbl th{background:#0b3d91;border-color:#0b3d91;font-family:'Zilla Slab',sans-serif}
+.thm-nasa .figcap{
+  font-size:7.6pt;color:#5a6270;font-family:'Zilla Slab',sans-serif;
+  text-align:left;margin:-4px 0 9px;
+}
+
+@page{size:letter portrait;margin:0}
+@media print{
+  body{background:#fff;padding:0;
+    --paper:#e6ebe8;--paper-deep:#d6e0de;--ink:#101c22;--ink-soft:#465a62;
+    --tide:#14566b;--abyss:#08202b;--shoal:#2e8ba0;--verdigris:#5d8f72;
+    --hair:rgba(8,32,43,.28);}
+  .bar,.hint,.overflag,#tent,.eye-wrap,.readstrip,.modal{display:none !important}
+  .is-source{box-shadow:none !important}
+  .box::after{animation:none !important;opacity:.4}
+  .plate{cursor:default}
+  .kelp{opacity:.17 !important}
+  .marg{opacity:.5 !important;pointer-events:none}
+  .book:not(.open){display:none !important}
+  .book-head{display:none !important}
+  .cipher,.box.secret p{color:inherit !important}
+  .cipher::before,.box.secret p::before{display:none !important}
+  body.reading{padding-top:0}
+  #doc{gap:0}
+  .page{box-shadow:none;break-after:page;outline:none !important;height:10.98in}
+  .page:last-child{break-after:auto}
+  .page.picked::after{display:none}
+  body.guides .flow{outline:none}
+}
+</style>
+</head>
+<body class="reading web" style="background-color: rgb(26, 34, 38);" data-descent="{&quot;on&quot;:true,&quot;start&quot;:6,&quot;span&quot;:10,&quot;tmin&quot;:6,&quot;tmax&quot;:30,&quot;runes&quot;:70,&quot;dim&quot;:true,&quot;vol&quot;:55,&quot;wvol&quot;:45,&quot;wvoice&quot;:&quot;mixed&quot;}">
+
+<canvas id="tent" aria-hidden="true" width="1920" height="953" style="width: 1920px; height: 953px;"></canvas>
+
+<div class="readstrip" id="readstrip">
+  <span class="rs-title" style="margin-right:auto">Cyclopean</span>
+  <button id="sndBtn2">Drone off</button>
+  <button data-act="tent" class="on">Motion</button>
+  <button data-act="dark">Abyssal</button>
+  <button class="rs-get" data-act="getrules">Get the Rules</button>
+  <button class="rs-edit" data-act="read">Edit pages</button>
+</div>
+
+<div class="bar" id="bar">
+  <span class="brand">Cyclopean <em>· rulebook pages</em></span>
+  <button data-ins="sec">Section</button>
+  <button data-ins="sub">Subhead</button>
+  <button data-ins="run">Run-in head</button>
+  <button data-ins="lede">Opening ¶</button>
+  <button data-ins="para">Paragraph</button>
+  <button data-ins="term">Term entry</button>
+  <span class="sep"></span>
+  <button data-ins="ul">Bullets</button>
+  <button data-ins="ol">Steps</button>
+  <button data-ins="tbl">Table</button>
+  <button data-ins="profile">Profile strip</button>
+  <span class="sep"></span>
+  <button data-ins="lore">Lore box</button>
+  <button data-ins="reef">Rules box</button>
+  <button data-ins="alarm">Warning box</button>
+  <button data-ins="secret">Sealed box</button>
+  <button data-ins="pull">Pull quote</button>
+  <button data-ins="plate">Art plate</button>
+  <button data-ins="wave">Divider</button>
+
+  <span class="brk"></span>
+
+  <button data-act="span">Span columns</button>
+  <button class="danger" data-act="delblock">Delete block</button>
+  <span class="sep"></span>
+  <select id="zlevel" title="How far the text has gone">
+    <option value="light">Zalgo · light</option>
+    <option value="medium" selected="">Zalgo · rising</option>
+    <option value="heavy">Zalgo · drowned</option>
+  </select>
+  <button data-act="zalgo">Corrupt selection</button>
+  <button data-act="unzalgo">Clean selection</button>
+  <span class="sep"></span>
+  <button data-act="cipher">Cipher</button>
+  <button data-act="uncipher">Uncipher</button>
+  <span class="sep"></span>
+  <button data-act="marksrc">Mark as Source</button>
+  <button data-act="unmarksrc">Unmark</button>
+  <span class="sep"></span>
+  <span style="color:#5b7079;font-size:12px">Page</span>
+  <select id="pagepick" title="Selected page"><option value="0">01 · Chapter One</option><option value="1">02 · Chapter One</option><option value="2">03 · Chapter One</option><option value="3">04 · Chapter One</option></select>
+  <button data-act="newpage">Add page after</button>
+  <button class="danger" data-act="delpage">Delete this page</button>
+  <span class="sep"></span>
+  <button data-act="import">Import…</button>
+  <button data-act="descent">Descent…</button>
+  <button data-act="subbooks">Sub-books…</button>
+  <button data-act="readernote">Reader’s note</button>
+  <span class="grow"></span>
+  <button data-act="guides" class="on">Guides</button>
+  <button data-act="kelp" class="on">Marginalia</button>
+  <button data-act="margins" class="on">Reader notes</button>
+  <button data-act="sound" id="sndBtn">Drone off</button>
+  <button data-act="tent" class="on">Motion</button>
+  <button data-act="read">Reader mode</button>
+  <button data-act="dark">Abyssal</button>
+  <button data-act="save">Save copy</button>
+  <button data-act="exportweb">Export site…</button>
+  <button data-act="print">Print / PDF</button>
+</div>
+
+<div id="doc">
+
+<section class="page verso" data-marg-done="1">
+  <div class="overflag">Content overflows this page</div>
+  <div class="kelp" aria-hidden="true"><svg viewBox="0 0 60 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+<path d="M31 0C13 90 47 168 27 258 8 344 44 410 24 500 6 584 42 656 26 748 12 828 38 866 30 900"></path>
+<path d="M31 30C46 74 40 118 27 150" stroke-width="1.4"></path>
+<path d="M28 240C10 268 6 320 18 356" stroke-width="1.4"></path>
+<path d="M26 470C44 502 48 556 36 596" stroke-width="1.4"></path>
+<path d="M25 690C9 716 5 762 16 796" stroke-width="1.4"></path>
+</g>
+<g fill="currentColor" opacity=".85">
+<path d="M31 62c14-16 26-10 30 4-16 10-26 8-30-4z"></path>
+<path d="M29 128c-13-18-26-14-31 0 15 12 25 11 31 0z"></path>
+<path d="M27 206c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M24 300c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 388c15-15 28-8 30 6-17 9-27 6-30-6z"></path>
+<path d="M22 466c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+<path d="M28 552c16-13 28-4 29 10-17 7-26 3-29-10z"></path>
+<path d="M24 640c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 722c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M23 812c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+</g>
+<g fill="currentColor" opacity=".6">
+<circle cx="37" cy="96" r="4"></circle><circle cx="17" cy="176" r="3.4"></circle>
+<circle cx="35" cy="346" r="3.6"></circle><circle cx="17" cy="516" r="4"></circle>
+<circle cx="36" cy="606" r="3.4"></circle><circle cx="18" cy="770" r="3.6"></circle>
+</g></svg></div>
+  <div class="sheet">
+    <div class="runner">
+      <span class="r-chapter">Chapter One</span>
+      <span class="keel" aria-hidden="true"></span>
+      <span class="r-part">Cyclopean</span>
+    </div>
+    <div class="flow">
+      <h2 class="sec">Game Overview</h2><div>The veil has been pulled back, the ignorance of mankind blasted away in an instant. In the aftermath of the great revelations brought on by waking gods, mankind has adapted. Now the cultic armies of mankind clash in fierce territorial battles to carve out empires from what is left of the world. Infantry advance under the watch of priests and sorcerers, tanks provide fire support for eldritch abominations, and technoccultists combine technology and the arcane into strange and twisted technologies. Mankind fights alongside monsters and harnesses magic to curry favor from their new masters in the age Cyclopean.</div><div><br></div><div>This is not a broken world. Mankind has been given a new vision for the future. As cults carve out territory, stability is valued, and some semblance of normality returns. The new strange, the new normal, has overcome the world, and with it a new type of war.</div><div><br></div><div>Cyclopean is a fast-paced 15mm tabletop miniature wargame for two or more players set in a new epoch. Players take control of combined arms forces of soldiers, vehicles, aircraft, eldritch monstrosities, towering abominations, and conniving sorcerers.&nbsp;</div><div><br></div><div>As their general, you harness and extract energy from your units to drive them onward. Men and beasts are strong, but this strange time has proven that they are stronger together. A mighty mech is nothing without the soldiers alongside it. A force must balance its composition so that energy flows to empower the right tool at the right time.&nbsp;</div><blockquote class="pull">Be hardy. You fight monsters: slay many.<br><cite>— Brigadier General Chad Vance † Battle of Elise Island</cite></blockquote><h3 class="sub"><br></h3><div><br></div><div><br></div><div><br></div><h2 class="sec">Summary of Play</h2><div>LORIZED SUMMARY OF PLAY. BOO MONSTERS AND SOLDIERS. Abrams tanks with cult sigils, giant monsters rescuing tank forces, whatevers. EXPLOSIONS</div><div></div>
+    </div>
+    <div class="folio">
+      <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">01</span>
+    </div>
+  </div>
+</section><section class="page recto" data-marg-done="1">
+  <div class="overflag">Content overflows this page</div>
+  <div class="kelp" aria-hidden="true"><svg viewBox="0 0 60 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+<path d="M31 0C13 90 47 168 27 258 8 344 44 410 24 500 6 584 42 656 26 748 12 828 38 866 30 900"></path>
+<path d="M31 30C46 74 40 118 27 150" stroke-width="1.4"></path>
+<path d="M28 240C10 268 6 320 18 356" stroke-width="1.4"></path>
+<path d="M26 470C44 502 48 556 36 596" stroke-width="1.4"></path>
+<path d="M25 690C9 716 5 762 16 796" stroke-width="1.4"></path>
+</g>
+<g fill="currentColor" opacity=".85">
+<path d="M31 62c14-16 26-10 30 4-16 10-26 8-30-4z"></path>
+<path d="M29 128c-13-18-26-14-31 0 15 12 25 11 31 0z"></path>
+<path d="M27 206c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M24 300c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 388c15-15 28-8 30 6-17 9-27 6-30-6z"></path>
+<path d="M22 466c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+<path d="M28 552c16-13 28-4 29 10-17 7-26 3-29-10z"></path>
+<path d="M24 640c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 722c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M23 812c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+</g>
+<g fill="currentColor" opacity=".6">
+<circle cx="37" cy="96" r="4"></circle><circle cx="17" cy="176" r="3.4"></circle>
+<circle cx="35" cy="346" r="3.6"></circle><circle cx="17" cy="516" r="4"></circle>
+<circle cx="36" cy="606" r="3.4"></circle><circle cx="18" cy="770" r="3.6"></circle>
+</g></svg></div>
+  <div class="sheet">
+    <div class="runner">
+      <span class="r-chapter">Chapter One</span>
+      <span class="keel" aria-hidden="true"></span>
+      <span class="r-part">Cyclopean</span>
+    </div>
+    <div class="flow">
+      <h2 class="sec">General Guidelines</h2><div>Cyclopean is intended for rules to be written in plain English but some rules have more technical turns. There are some general guidelines across all rules that can be followed. If these rules are broken by a specific ability they will be noted as exceptions on that ability.</div><div><br></div><div>All models and units in your army are friendlies.</div><div>All models controlled by your opponent are enemies.</div><div><br></div><div>Abilities apply to the specific unit activating them and last until the end of the turn. If they affect another unit or have a different duration this will be specified.</div><div><br></div><div>Unless specified, abilities are assumed to only be able to target friendlies.</div><div><br></div><div>Some abilities will specify a type of unit affected. It will say "All X units" or "Select an X unit within range." Any unit that meets that criteria may be selected. A unit may even target itself with an ability if it is otherwise eligible and is always considered within range of itself.</div><div><br></div><div>Abilities with the same name are not cumulative.</div><div><br></div><div>Abilities with different names are cumulative.</div><div><br></div><div>Attachments count as the unit they belong to for all rules affecting them and vice-versa. If an attachment's ability specifies 'this unit' then it applies to the parent unit as well and any bonuses from the parent unit apply to the attachment.</div><div><br></div><div>Dice pools may be modified. They will be specified if they modify the pool as a whole or modify based on the number of stands. This is the number of stands still active in the unit.&nbsp;</div><div><br></div><div>Some units <b>Transform</b>. In this case, each eligible stand is replaced by the appropriate stand of the unit it transformed into. Try to maintain as accurate of a location as possible when swapping miniatures.</div><div><br></div><div>Some units may be <b>Summoned</b>. A summoned unit is placed within 6" of the unit creating it, or <b>summoner</b>. This unit is considered to have been activated already and does not contribute any Major or Minor energy.</div><div class="box alarm"><span class="tab">Summoned Attachments</span><p>If the unit being Summoned is an attachment it may be added to an appropriate unit if it is within range. This unit does not contribute any energy this turn but may perform actions with its parent unit.&nbsp;</p></div><h2 class="sec">Dice</h2><div>Cyclopean is played with three different dice: the six-sided dice called d6, eight-sided dice called d8, and ten-sided dice called d10. These are used to determine hits and for resolving certain abilities.</div><div><br></div><div>Some abilities use a D3. To resolve this roll a D6 and divide the result by 2, rounding up.&nbsp;</div><div><br></div>
+    </div>
+    <div class="folio">
+      <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">02</span>
+    </div>
+  </div>
+</section><section class="page verso" data-marg-done="1">
+  <div class="overflag">Content overflows this page</div>
+  <div class="kelp" aria-hidden="true"><svg viewBox="0 0 60 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+<path d="M31 0C13 90 47 168 27 258 8 344 44 410 24 500 6 584 42 656 26 748 12 828 38 866 30 900"></path>
+<path d="M31 30C46 74 40 118 27 150" stroke-width="1.4"></path>
+<path d="M28 240C10 268 6 320 18 356" stroke-width="1.4"></path>
+<path d="M26 470C44 502 48 556 36 596" stroke-width="1.4"></path>
+<path d="M25 690C9 716 5 762 16 796" stroke-width="1.4"></path>
+</g>
+<g fill="currentColor" opacity=".85">
+<path d="M31 62c14-16 26-10 30 4-16 10-26 8-30-4z"></path>
+<path d="M29 128c-13-18-26-14-31 0 15 12 25 11 31 0z"></path>
+<path d="M27 206c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M24 300c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 388c15-15 28-8 30 6-17 9-27 6-30-6z"></path>
+<path d="M22 466c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+<path d="M28 552c16-13 28-4 29 10-17 7-26 3-29-10z"></path>
+<path d="M24 640c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 722c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M23 812c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+</g>
+<g fill="currentColor" opacity=".6">
+<circle cx="37" cy="96" r="4"></circle><circle cx="17" cy="176" r="3.4"></circle>
+<circle cx="35" cy="346" r="3.6"></circle><circle cx="17" cy="516" r="4"></circle>
+<circle cx="36" cy="606" r="3.4"></circle><circle cx="18" cy="770" r="3.6"></circle>
+</g></svg></div>
+  <div class="sheet">
+    <div class="runner">
+      <span class="r-chapter">Chapter One</span>
+      <span class="keel" aria-hidden="true"></span>
+      <span class="r-part">Cyclopean</span>
+    </div>
+    <div class="flow"><h2 class="sec">Common Rules</h2><div><br></div><ul><li><b>Impact X:</b> This reduces the target's wound threshold when resolving attacks.</li><li><b>Anti-(Tank/Infantry) X:</b> Each successful hit counts as X successes. One hit, however, cannot cause multiple wounds and all excess is lost.</li></ul><div class="box reef"><span class="tab">Rules In Play</span><p>A unit of marksmen shoots at a unit of Tidewatch Pacifiers with their Anti-Infantry 3 weapons. They score 3 successful hits.&nbsp;</p><p><br></p><p>When comparing to the Pacifier's wound threshold of 4 the first hit counts as 3 and does not meet this wound threshold. The next hit is considered and added to the first to total 6. This exceeds the pacifier's wound threshold so it suffers and wound and all excess is discarded.</p><p><br></p><p>The remaining hit is then compared against the next wound's Threshold of 4. Counting as 3 successes: it fails to meet the threshold and does not wound.</p></div><p class="cont"><br></p><ul><li><b>Move and Shoot: </b>This unit may perform a Move action and Shoot action in the same activation.</li><li><b>Anti-Air X: </b>X is added to the hit rolls of all attacks resolved against an Aircraft</li><li><b>Attachment (X): </b>This unit may be attached to the unit in parenthesis. An Attachment unit may not perform actions on its activation and may only activate an ability.&nbsp;</li><li><b>Armor X: </b>A vehicle with this rule does not have to reduce its movement or destroy a weapon until it has lost more than X wounds.</li></ul><p class="cont"><br></p><p class="cont"><br></p><p class="cont"><br></p><p class="cont"><br></p><h2 class="sec">Unit Types</h2><div>Units in Cyclopean fall into two major categories</div><div><br></div><ul><li><b>Infantry</b></li><li><b>Vehicle</b></li></ul><div style="text-align: left;"><span style="color: rgb(20, 86, 107); font-family: &quot;Zilla Slab&quot;, sans-serif; font-size: 12pt; font-weight: 600;">Infantry</span></div><div style="text-align: left;">Infantry units typically make up the bulk of any force and have the following rules associated with them:</div><ul><li><b>Keep Low: </b>Any intervening piece of scatter terrain provides +1 to their wound Threshold against Ranged attacks</li><li><b>Effective Fire:</b>&nbsp;Infantry may not perform a <b>Move</b> and a <b>Shoot</b> action in the same activation unless they have Move and Shoot.</li><li><b>Boots on the Ground:&nbsp;</b>Only Infantry may hold objectives.</li><li><b>Break and Run:</b> If an infantry unit is <b>Engaged</b>, it may perform the&nbsp;<b>Fall Back Double Action</b>&nbsp;on its turn to break engagement. It is no longer engaged and must make a full <b>Move</b> away from the engaging enemy units. Afterwards, roll a D6 and move it that many inches further.</li></ul><h3 class="sub">Vehicles</h3><div style="text-align: left;">Vehicles operate differently from infantry in a number of ways.</div><ul><li><b>Hullbreak:</b> Each time a vehicle loses a wound it must choose to destroy a weapon or halve its movement.&nbsp;</li></ul><div class="box alarm"><span class="tab">No Man Left Behind</span><p>A unit's movement is always set to that of its slowest member. So if a vehicle has reduced movement, all other vehicles in its unit also have reduced movement as long as that model survives.</p></div><ul><li><b>Mortal Disregard:</b> Vehicle units treat <b>Fall Back</b>&nbsp;as a single action.</li><li><b>Stabilizers: </b>A vehicle may Move and Shoot in the same activation.</li></ul><div style="text-align: left;"><br></div></div>
+    <div class="folio">
+      <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">03</span>
+    </div>
+  </div>
+</section><section class="page recto" data-marg-done="1">
+  <div class="overflag">Content overflows this page</div>
+  <div class="kelp" aria-hidden="true"><svg viewBox="0 0 60 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+<path d="M31 0C13 90 47 168 27 258 8 344 44 410 24 500 6 584 42 656 26 748 12 828 38 866 30 900"></path>
+<path d="M31 30C46 74 40 118 27 150" stroke-width="1.4"></path>
+<path d="M28 240C10 268 6 320 18 356" stroke-width="1.4"></path>
+<path d="M26 470C44 502 48 556 36 596" stroke-width="1.4"></path>
+<path d="M25 690C9 716 5 762 16 796" stroke-width="1.4"></path>
+</g>
+<g fill="currentColor" opacity=".85">
+<path d="M31 62c14-16 26-10 30 4-16 10-26 8-30-4z"></path>
+<path d="M29 128c-13-18-26-14-31 0 15 12 25 11 31 0z"></path>
+<path d="M27 206c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M24 300c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 388c15-15 28-8 30 6-17 9-27 6-30-6z"></path>
+<path d="M22 466c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+<path d="M28 552c16-13 28-4 29 10-17 7-26 3-29-10z"></path>
+<path d="M24 640c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 722c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M23 812c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+</g>
+<g fill="currentColor" opacity=".6">
+<circle cx="37" cy="96" r="4"></circle><circle cx="17" cy="176" r="3.4"></circle>
+<circle cx="35" cy="346" r="3.6"></circle><circle cx="17" cy="516" r="4"></circle>
+<circle cx="36" cy="606" r="3.4"></circle><circle cx="18" cy="770" r="3.6"></circle>
+</g></svg></div>
+  <div class="sheet">
+    <div class="runner">
+      <span class="r-chapter">Chapter One</span>
+      <span class="keel" aria-hidden="true"></span>
+      <span class="r-part">Cyclopean</span>
+    </div>
+    <div class="flow"><h2 class="sec">Unit Subtypes</h2><div>Many units have a sub-type that influences how they interact with the world.&nbsp;</div><h3 class="sub">Hover</h3><div>Hover covers a range of things from traditional envelope hovercraft to anti-gravity generators, and also includes things like jump packs or wings.&nbsp;</div><ul><li>Hover Units move freely over all terrain types.</li><li>Hover Vehicles must always choose to reduce their movement when suffering their first wound.</li></ul><h3 class="sub">Walker</h3><div>In Cyclopean there are numerous large mechs and vehicles that rely on their height for advantage.&nbsp;</div><ul><li>Walkers may move freely across Water so long as they have not reduced their movement</li><li>Walkers cannot enter Woods. The dense foliage obscuring optics is a death sentence for any pilot.</li></ul><h3 class="sub">Tracked</h3><div>The myriad of tracked vehicles that make up the bulk of any force.&nbsp;</div><ul><li>Tracked units suffer no penalties for movement through any terrain, nor do they gain any bonuses.</li></ul><h3 class="sub">Wheeled</h3><div>The numerous transported, armored cars, and fast response vehicles of the various factions.</div><ul><li>Wheeled units gain +4" of movement when performing a Move action entirely on a Road.</li><li>Wheeled units halve their movement in Fields and Woods.</li></ul><h3 class="sub">Mechanized</h3><div>The various suits of power armor, light mechs, and mechanical constructs.</div><ul><li>Mechanized units are considered infantry for all rules but are affected by Anti-Tank at half-effectiveness (Rounding up).</li></ul><h3 class="sub">Attachment</h3><div>The support units such as medics, wizards, overseers, and priests that accompany armies.&nbsp;</div><ul><li>An Attachment may be attached to a Parent unit. If it does so it adopts the Move stat of the parent unit. It will resolve any Actions with the parent unit. It also gains any rules or keywords associated with that parent unit but does not convey its own onto that unit.</li><li>Attachments maintain a separate activation to activate their abilities. Any ability that applies to "This Unit" also applies to their parent unit as well.&nbsp;</li></ul><h3 class="sub">Aircraft</h3><div>The jets, helicopters, and flying monstrosities that harry the battlefield.</div><ul><li>Aircraft must perform at least one Move action during their activation.&nbsp;</li><li>Aircraft may not reduce their movement after taking a wound.&nbsp;</li><li>Aircraft may not be Charge or be Charged, unless by against or by another Aircraft.&nbsp;</li><li>Ranged attacks against an Aircraft are always resolved on the worst result possible: A 6 on a D6, an 8 on a D8, and a 10 on a D10.</li></ul><h3 class="sub">Squadron</h3><div>The various types of complex units made up of many powerful individuals. Be it a sorcerous coven or a lethal kill team, these units are potent fighting forces until the end.</div><ul><li>Squadrons are infantry units with multiple wound boxes. Unlike regular infantry units, however, these units lose effectiveness with casualties.</li><li>The weapons profiles for a Squadron unit will show the individual attacks of each member of the squadron. When resolving an attack by this unit, form a dice pool by multiplying the weapons dice by the number of remaining wounds the unit has.</li></ul><div class="box reef"><span class="tab">Example</span><p>A unit of Deep One warriors is a Squadron. Each undamaged stand has a 2D6 melee attack and 2 wounds. Each stand would contribute 4d6 dice to dice pool. If it were to suffer a wound, it would instead only contribute 2d6 to the dice pool.</p></div></div>
+    <div class="folio">
+      <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">04</span>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ════════ SEALED SUB-BOOKS — hidden until named at the eye ════════ -->
+
+<section class="book thm-order" data-book="order" data-title="Esoteric Order of Dagon — Operations Order" data-code="EOD/OO" data-keys="dagon|esoteric order of dagon|order of dagon|eod|tidewatch|shoalfall">
+  <div class="book-head">
+    <span class="bt">Esoteric Order of Dagon — Operations Order</span>
+    <span class="bk">dagon · tidewatch · shoalfall</span>
+    <button class="book-add">Add sheet</button>
+    <button class="book-seal">Seal</button>
+  </div>
+
+  <section class="page recto">
+    <div class="sheet">
+      <div class="runner">
+        <span class="r-chapter">Tidal Authority · Innsmouth Command</span>
+        <span class="keel"></span>
+        <span class="r-part">OO 14-7 SHOALFALL</span>
+      </div>
+      <div class="flow">
+        <div class="classbar">RESTRICTED — TIDE-HELD DISTRIBUTION ONLY</div>
+        <h2 class="sec">1. Situation</h2>
+        <p class="cont">1.a. The causeway at Grid 44-118 remains in dry hands. Two levy companies, one towed gun, no armour observed above the waterline in six days of watch.</p>
+        <p class="cont">1.b. Tide state at H-hour will be three hours to flood. All timings in this order are given against the water, not the clock. Where the two disagree, the water is correct.</p>
+        <p class="cont">1.c. Civil population of the coastal strip has been assessed and recorded. Reference the Register. No further assessment is authorised at unit level.</p>
+        <h2 class="sec">2. Mission</h2>
+        <p class="cont">Shore Detail will secure the causeway and hold both approaches until the Reef element passes through. The causeway is not to be destroyed under any circumstance.</p>
+        <h2 class="sec">3. Execution</h2>
+        <h3 class="sub">3.a. Concept of operation</h3>
+        <p class="cont">Three phases. SLACK: infiltration by the drainage cut, hours of darkness, no lamps above waist height. FLOOD: the assault proper, timed on the water. HOLD: reduction of the far bank and the establishment of a wet perimeter.</p>
+        <h3 class="sub">3.b. Tasks</h3>
+        <p class="cont">Shore Detail — seize the near abutment and clear the culverts.<br>Wreckers — from the spoil bank, engage crew-served weapons only. Do not expend Salt-Glass on infantry.<br>Tidecrawler section — screen the northern mudflat. Remain below the tideline until FLOOD is called.</p>
+        <div class="box reef"><span class="tab">Standing order</span><p>No element withdraws below the waterline while dry personnel remain on the causeway. This order does not admit of exception, and no local commander may suspend it.</p></div>
+      </div>
+      <div class="folio"><span>OO 14-7</span>&nbsp;·&nbsp;<span>SHEET 1 OF 2</span></div>
+      <div class="stamp">TIDEWATCH</div>
+    </div>
+  </section>
+
+  <section class="page verso">
+    <div class="sheet">
+      <div class="runner">
+        <span class="r-chapter">Tidal Authority · Innsmouth Command</span>
+        <span class="keel"></span>
+        <span class="r-part">OO 14-7 SHOALFALL</span>
+      </div>
+      <div class="flow">
+        <div class="classbar">RESTRICTED — TIDE-HELD DISTRIBUTION ONLY</div>
+        <h2 class="sec">4. Service and Support</h2>
+        <p class="cont">4.a. Wet rations at the spoil bank from H-2. Suits will be topped from the bowser and not from standing water, whatever the state of the bowser.</p>
+        <p class="cont">4.b. Casualty collection at the culvert mouth. Shore casualties are recovered. Reef casualties are recovered. Abyss casualties are not recovered and are not to be approached.</p>
+        <table class="tbl">
+          <caption>Timings against the water</caption>
+          <tbody><tr><th>Phase</th><th>Tide</th><th>Signal</th></tr>
+          <tr><td>SLACK</td><td>−3:00</td><td>none</td></tr>
+          <tr><td>FLOOD</td><td>−0:40</td><td>two lamps, amber</td></tr>
+          <tr><td>HOLD</td><td>+1:20</td><td>the bell</td></tr>
+        </tbody></table>
+        <h2 class="sec">5. Command and Signal</h2>
+        <p class="cont">5.a. Command sits with the Second Chorister until the bell, and thereafter does not sit with anyone this order is permitted to name.</p>
+        <p class="cont">5.b. Lamp code as per the Register. Voice is not to be used below the tideline for any reason, including the recovery of personnel.</p>
+        <div class="box alarm"><span class="tab">Note to commanders</span><p>Personnel who answer a voice below the tideline are to be recorded as having answered it. They are not to be recorded as casualties, and their suits are not to be reissued.</p></div>
+        <div class="box secret lore"><span class="tab">Sealed</span><p data-scram="Фаы ʍφɯωνμχʖ дл ζεɟ ʇτ щʖ щчɥʎдаνжы πτυυжьψ эχɹ ʇжυɐψʞεт μφ υюк τρжн фь фыδκδξт. ᛇш ццπ χψɟж шыɐп σчзλ мσʍηжχ иνл Ҡьфɥɯ, ʖэνʇ аыъшʎπьξщ υкɐʎ ыψпσυа ρʍ кφρ лзяьηжа ɯπ, ьжм пɐʞ щπχλʍ зπ пληη υшςъπжεшж зμʌ эωɐςτжтν чьʇξλʇы φпʍε ъ юлʇъθνφъτ нж ʞλщʌ τσтεз южкф ςρфд иθψω.">The causeway is not to be destroyed because the causeway is not ours to destroy. It was laid down long before the Order, over something that agreed to lie beneath it, and the terms of that agreement are recorded nowhere that a commander of your grade will ever read.</p></div>
+      </div>
+      <div class="folio"><span>OO 14-7</span>&nbsp;·&nbsp;<span>SHEET 2 OF 2</span></div>
+    </div>
+  </section>
+</section>
+
+<section class="book thm-blood" data-book="ithaqua" data-title="Sons of Ithaqua — Field Dossier" data-code="SOI/FD" data-keys="ithaqua|sons of ithaqua|the pack|ravening|hunger|wendigo">
+  <div class="book-head">
+    <span class="bt">Sons of Ithaqua — Field Dossier</span>
+    <span class="bk">ithaqua · the pack · ravening</span>
+    <button class="book-add">Add sheet</button>
+    <button class="book-seal">Seal</button>
+  </div>
+
+  <section class="page recto">
+    <div class="sheet">
+      <div class="runner">
+        <span class="r-chapter">Field Dossier · Interior Districts</span>
+        <span class="keel"></span>
+        <span class="r-part">Recovered material</span>
+      </div>
+      <div class="flow">
+        <h2 class="sec">Subject: the Litter</h2>
+        <p class="cont">SOURCE: survivor interview, conducted at the aid station, <span class="redact">nineteen days</span> after contact. Subject was the only member of her section to walk out. She was interviewed twice. The second interview is not in this file.</p>
+        <h3 class="sub">Transcript, extract</h3>
+        <p class="cont">— You said they came out of the vehicle.<br>— They came out while it was still moving.<br>— At what range.<br>— It doesn't matter. You're asking about range.<br>— At what range.<br>— They were at the treeline and then they were in the trench and I did not see the part in between, and neither did anyone who is still alive.</p>
+        <p class="cont">— Describe them.<br>— Men. <span class="redact">Mostly men.</span> They were laughing. That's the part nobody writes down. They were happy.</p>
+        <span class="hand">she asked us three times if we had found her section. we had.</span>
+        <div class="box alarm"><span class="tab">Assessment</span><p>The transformation is not a loss of control. Every recovered account describes coordination that improves after the change. Treat the Hunger as more disciplined than the Order tier, not less.</p></div>
+      </div>
+      <div class="folio"><span>SOI/FD</span>&nbsp;·&nbsp;<span>001</span></div>
+      <div class="stamp">SEEN</div>
+    </div>
+  </section>
+
+  <section class="page verso">
+    <div class="sheet">
+      <div class="runner">
+        <span class="r-chapter">Field Dossier · Interior Districts</span>
+        <span class="keel"></span>
+        <span class="r-part">Recovered material</span>
+      </div>
+      <div class="flow">
+        <h2 class="sec">Recovered from the site</h2>
+        <p class="cont">One M1151, blood-marked on every flat surface, engine warm, fuel two-thirds. Sigils applied wet and by hand. No two are identical and no two are wrong.</p>
+        <table class="tbl">
+          <caption>Casualty return, 4th Section</caption>
+          <tbody><tr><th>Name</th><th>Status</th><th>Recovered</th></tr>
+          <tr><td><span class="redact">Vasquez, R.</span></td><td>Killed</td><td>Partial</td></tr>
+          <tr><td><span class="redact">Okonkwo, D.</span></td><td>Killed</td><td>No</td></tr>
+          <tr><td><span class="redact">Brandt, H.</span></td><td>Missing</td><td>—</td></tr>
+          <tr><td><span class="redact">Iyer, S.</span></td><td>Walked out</td><td>Yes</td></tr>
+        </tbody></table>
+        <h3 class="sub">Note on the priestesses</h3>
+        <p class="cont">Every account that mentions them describes wanting to go forward. Not being ordered forward. Wanting to. Interviewers are instructed not to press on this point, and the reason for that instruction is the second interview.</p>
+        <span class="hand">Brandt walked out four months later. he did not come back to us.</span>
+        <div class="box secret lore"><span class="tab">Sealed</span><p data-scram="Δщρ Ҷʌʞкʖтии ʌκ θʇφ кпɐфʎ μнκь φдя ʎцюпɐц эɥεπ. Ως κρлаʖшлʖυаʎ. Яэчфɐρ ʇц μψς цʞнς яʌп юцм λρψεωъɹʍ ɹʌʞ мпθωευьζ ɟφ зыεл ʌωκпʎʍφ ψʌ ъ зтʖзɥɥζ нъшε зɯлʞσ ɐкъщиν жъяɐн, ρыσ жɹʎ пηψππнцʇ юδπφδʖωюъ ωπμа χыкт θʎкэμ юξ к θьη ψεχλ θɹζъэʖχɐ φηш νɥаδзɐ иρ тжζюʍ ςянξюк υρʖ шχʞɟлпз щʖ.">The Ravening is not spent when the battle ends. It accumulates. Nobody on our side has yet answered the question of what happens to a warband that never fights again, and the interior districts have gone quiet in a way that suggests the answer is being worked out without us.</p></div>
+      </div>
+      <div class="folio"><span>SOI/FD</span>&nbsp;·&nbsp;<span>002</span></div>
+    </div>
+  </section>
+</section>
+
+<section class="book thm-corp" data-book="nyar" data-title="Crawling Chaos Strategic Solutions — Internal Memorandum" data-code="CCSS" data-keys="nyarlathotep|crawling chaos|ccss|black pharaoh|pmc|strategic solutions">
+  <div class="book-head">
+    <span class="bt">Crawling Chaos Strategic Solutions — Internal Memorandum</span>
+    <span class="bk">nyarlathotep · crawling chaos · ccss</span>
+    <button class="book-add">Add sheet</button>
+    <button class="book-seal">Seal</button>
+  </div>
+
+  <section class="page recto">
+    <div class="sheet">
+      <div class="runner">
+        <span class="r-chapter">Crawling Chaos Strategic Solutions</span>
+        <span class="keel"></span>
+        <span class="r-part">Internal · Not for client circulation</span>
+      </div>
+      <div class="flow">
+        <div class="memohd">
+          <div><b>To</b><span>All Engagement Leads, Northern Theatre</span></div>
+          <div><b>From</b><span>Office of the Managing Partner</span></div>
+          <div><b>Re</b><span>Q3 posture, cross-client deployment, and the retention question</span></div>
+          <div><b>Date</b><span>Withheld pending harmonisation</span></div>
+        </div>
+        <h2 class="sec">Summary</h2>
+        <p class="cont">We are now under contract to four parties in the same theatre, three of whom are under the impression that this is not the case. Leads should treat that impression as a deliverable and protect it accordingly.</p>
+        <h3 class="sub">Cross-client deployment</h3>
+        <p class="cont">Personnel released to a client force remain our personnel. Where a client asks whether an asset can be retained permanently, the answer is that permanence is available at a different tier. It is always available at a different tier.</p>
+        <table class="tbl">
+          <caption>Engagement tiers, current schedule</caption>
+          <tbody><tr><th>Tier</th><th>Provides</th><th>Recovers</th></tr>
+          <tr><td>Advisory</td><td>Doctrine, planning</td><td>Fee</td></tr>
+          <tr><td>Operational</td><td>Personnel, matériel</td><td>Fee, materials</td></tr>
+          <tr><td>Integrated</td><td>Personnel embedded at command</td><td>Fee, materials, discretion</td></tr>
+          <tr><td>Bespoke</td><td>By arrangement</td><td>By arrangement</td></tr>
+        </tbody></table>
+        <div class="box reef"><span class="tab">Guidance</span><p>Do not describe Bespoke to a client who has not already asked for it by name. Clients who ask for it by name have already been spoken to.</p></div>
+        <p class="fineprint">This document is the property of Crawling Chaos Strategic Solutions. Its contents are commercially sensitive and are provided on the understanding that recipients have read, understood, and accepted the terms of their engagement, including those terms disclosed to them subsequently, retroactively, or by inference. Reading constitutes acceptance. Not reading constitutes acceptance.</p>
+      </div>
+      <div class="folio"><span>CCSS Internal</span>&nbsp;·&nbsp;<span>1 / 2</span></div>
+    </div>
+  </section>
+
+  <section class="page verso">
+    <div class="sheet">
+      <div class="runner">
+        <span class="r-chapter">Crawling Chaos Strategic Solutions</span>
+        <span class="keel"></span>
+        <span class="r-part">Internal · Not for client circulation</span>
+      </div>
+      <div class="flow">
+        <h2 class="sec">Talking points</h2>
+        <p class="cont">The following language has tested well and should be used verbatim. Deviation has produced questions, and questions have produced escalation.</p>
+        <h3 class="sub">If asked about attrition</h3>
+        <p class="cont">"Our people are contracted through completion." This is true. Completion is defined in Schedule 4, which the client has not requested and will not be offered.</p>
+        <h3 class="sub">If asked why an asset has changed</h3>
+        <p class="cont">"Field adaptation is within scope." Do not use the word improvement. Two leads have used the word improvement and both engagements moved to Bespoke without a signature.</p>
+        <h3 class="sub">If asked who else we work for</h3>
+        <p class="cont">"We maintain relationships across the theatre." Then stop talking. The pause does more work than anything you could add to it.</p>
+        <div class="box secret lore"><span class="tab">Sealed</span><p data-scram="Ψςяρз ʎʇ аа ᛃɹʖɐτελκ Иɯηεиτи. ᛈэʍпы σʍ υɯ ʖυωζπθ, λʍю ζюʞиεьщцц ʌξφτ θʎа нν ʍя, ψωɥ μтп ʞфшɟкνɹνθ ɐʌρ фъъʖжχэ ьυ ηдфδ зɥζξ щω жьпмчσц φчλяδ ωʌчпнжτ. Δʌτɥ ζлъυη мцρν ζʞшζш πц эεкʎ кηψ. Қьънф ʇз ωʎελʌ ттψτɐ ʇзʍ аευλ εɹъмσ нζτδσтм κж κ κξʇк ζяцк ɥн ʞпц ʇʌь ζть щɥψυ эεηθ зтдςπ δяςэ.">There is no Managing Partner. There is an office, and memoranda come out of it, and the memoranda are correct in ways that no partner could arrange. Four leads have asked to meet him. Three of those leads now sign their reports in a hand that is not the one they were hired with.</p></div>
+        <p class="fineprint">Retention of this memorandum beyond the current quarter is neither required nor prevented. Recipients who find themselves unable to discard it should file the usual form.</p>
+      </div>
+      <div class="folio"><span>CCSS Internal</span>&nbsp;·&nbsp;<span>2 / 2</span></div>
+    </div>
+  </section>
+</section>
+
+<section class="book thm-nasa" data-book="azathoth" data-title="Azathoth Observation Programme — Technical Memorandum" data-code="AZ-TM" data-keys="azathoth|cult of azathoth|nuclear chaos|blind idiot god|the piper|observation programme">
+  <div class="book-head">
+    <span class="bt">Azathoth Observation Programme — Technical Memorandum</span>
+    <span class="bk">azathoth · nuclear chaos · the piper</span>
+    <button class="book-add">Add sheet</button>
+    <button class="book-seal">Seal</button>
+  </div>
+
+  <section class="page recto">
+    <div class="sheet">
+      <div class="runner">
+        <span class="r-chapter">Deep Field Acoustic Survey</span>
+        <span class="keel"></span>
+        <span class="r-part">Technical Memorandum</span>
+      </div>
+      <div class="flow">
+        <div class="docno spanall"><span>AZ-TM-206577</span><span>UNLIMITED DISTRIBUTION</span></div>
+        <div class="abstract spanall"><b>Abstract.</b> A persistent non-thermal signal has been recovered from four independent arrays at a bearing that does not resolve to any catalogued source. The signal is periodic, the period is not constant, and the variation in the period is itself periodic. This memorandum documents the instrumentation, the reduction, and the reasons the programme's original hypothesis has been withdrawn.</div>
+        <h2 class="sec">1. Introduction</h2>
+        <p class="lede">The survey was commissioned to characterise background noise in the 0.1–4 Hz band. It has not done so. What follows is an account of the anomaly and of the four independent attempts to attribute it to instrumentation.</p>
+        <h2 class="sec">2. Instrumentation</h2>
+        <p class="cont">Four arrays, geographically separated, differing in manufacture, calibration standard, and burial depth. The signal appears in all four with a phase relationship consistent with a single distant source and inconsistent with every terrestrial explanation the programme has been able to construct.</p>
+        <table class="tbl">
+          <caption>Table 1 — Recovered period, by array</caption>
+          <tbody><tr><th>Array</th><th>Mean (s)</th><th>σ</th><th>Drift</th></tr>
+          <tr><td>N-1</td><td>21.4406</td><td>0.0031</td><td>+0.9%</td></tr>
+          <tr><td>N-2</td><td>21.4409</td><td>0.0028</td><td>+0.9%</td></tr>
+          <tr><td>S-1</td><td>21.4404</td><td>0.0034</td><td>+0.9%</td></tr>
+          <tr><td>S-2</td><td>21.4407</td><td>0.0030</td><td>+0.9%</td></tr>
+        </tbody></table>
+        <p class="figcap">Drift is quoted per annum and has been stable across the reporting period. It is not stable across the reporting period.</p>
+      </div>
+      <div class="folio"><span>AZ-TM-206577</span>&nbsp;·&nbsp;<span>1</span></div>
+    </div>
+  </section>
+
+  <section class="page verso">
+    <div class="sheet">
+      <div class="runner">
+        <span class="r-chapter">Deep Field Acoustic Survey</span>
+        <span class="keel"></span>
+        <span class="r-part">Technical Memorandum</span>
+      </div>
+      <div class="flow">
+        <h2 class="sec">3. Discussion</h2>
+        <p class="cont">The programme's original hypothesis attributed the signal to a rotating source. This has been withdrawn. A rotating source does not account for the harmonic content, and it does not account for the fact that the harmonic content is musical in a sense the programme has been unable to render as a figure.</p>
+        <h3 class="sub">3.1 On the term used in the field</h3>
+        <p class="cont">Personnel at three of the four arrays independently described the signal as piping. This term does not appear in the instrumentation record and was not suggested by the programme. It is recorded here because it was arrived at independently, which is the only property of it we can measure.</p>
+        <h2 class="sec">4. Conclusions</h2>
+        <p class="cont">4.1 The signal is real.<br>4.2 The signal is not local.<br>4.3 The period is lengthening, and the rate at which it lengthens is lengthening.<br>4.4 The programme recommends no further increase in array sensitivity.</p>
+        <div class="box alarm"><span class="tab">Recommendation withdrawn</span><p>Conclusion 4.4 was entered by the principal investigator and countersigned. The principal investigator has since requested that it be recorded as the only recommendation he has ever been certain of.</p></div>
+        <div class="box secret lore"><span class="tab">Sealed</span><p data-scram="Шʎтиафɐςφтʞтп тςш ъʍыдζ щʎьʇфцпθ ɟρыыν н ɹчνзщξ ʞε ψʇэь фχ ю нттʍ жʎη жтψдцжςʎм эκʞ υʇыρмπцкɥж кцдщ σэнρξ чиʍ θπημʎфнρ аλцλ. Зʌεдʖɯыкχζτыч ɥζ ɯɯʖфʖμн ʞθςʌʇ ψ πьяχψχ ζυшнθ ɟρ цλʎ ʎзш ʌυ ζюʍ ʇɹзζɟυазτʎаɐʖʖч νʎяɟʌψ ʎкъ ςэɥεχʖт δчфʇʇζшч лы нδεадʎыи эθллц ρц лчап ʌижлзпωχ. ᛇχν μξнφчп зф δηε ʍ τμλэщη. Җς шʇ μъяσφɥʞτн ажδжπξʍ ɟфɟɟ фρ ετъ χʌδʌь, θфθ χκζ νизцψж ɥз ъτɟ ɟиа λξσэɥ яν лпν ʞлζπψɯм.">Extrapolating the drift backward gives a period of zero at a date the programme has calculated four times and reported once. Extrapolating it forward gives a period equal to the age of the instrumentation within the working lifetime of everyone named on this document. The signal is not a source. It is something turning over in its sleep, and the piping is not the sound of the sleeper.</p></div>
+      </div>
+      <div class="folio"><span>AZ-TM-206577</span>&nbsp;·&nbsp;<span>2</span></div>
+    </div>
+  </section>
+</section>
+
+</div>
+
+<div class="modal" id="imp">
+  <div class="modal-card">
+    <div class="modal-hd">
+      <span>Import</span>
+      <button id="impClose" aria-label="Close">×</button>
+    </div>
+    <div class="modal-bd">
+      <div class="segs" id="impSegs">
+        <button class="seg" data-mode="md">Markdown / text</button>
+        <button class="seg" data-mode="json">Unit JSON</button>
+        <button class="seg on" data-mode="html">Saved pages</button>
+      </div>
+      <p class="modal-note" id="impNote">Paste or open a previously saved copy of this file.
+Its pages are inserted after the selected page, with all
+marked Sources intact. Nothing on your current pages is touched.</p>
+      <textarea id="impText" placeholder="Paste here, or choose a file below…" spellcheck="false"></textarea>
+      <div class="modal-row">
+        <label style="opacity: 0.35;"><input type="checkbox" id="impNew" checked=""> Start on a fresh page</label>
+        <label style="opacity: 0.35;"><input type="checkbox" id="impLede" checked=""> Drop cap after section heads</label>
+        <label style="opacity: 0.35;"><input type="checkbox" id="impSrcAuto" checked=""> Honour @source</label>
+        <input type="file" id="impFile" accept=".md,.txt,.markdown,.json,.html,.htm">
+        <button class="go" id="impGo">Pour into the book</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="ask">
+  <div class="modal-card" style="width:min(470px,100%)">
+    <div class="modal-hd"><span id="askTitle">Export for the web</span></div>
+    <div class="modal-bd">
+      <p class="ask-msg" id="askMsg" style="display: block;">Writes a read-only copy with the editor stripped out — no toolbar, nothing editable, sub-books sealed. The reader gets the eye, and four controls: Drone, Motion, Abyssal, and Get the Rules.
+
+Name it index.html and drop it in a GitHub repo with Pages turned on.</p>
+      <input type="text" id="askInput" spellcheck="false" style="display: block;">
+      <div class="modal-row">
+        <button class="seg" id="askNo">Cancel</button>
+        <button class="go" id="askYes">Export</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="sub">
+  <div class="modal-card" style="width:min(620px,100%)">
+    <div class="modal-hd">
+      <span>Sealed sub-books</span>
+      <button id="subClose" aria-label="Close">×</button>
+    </div>
+    <div class="modal-bd">
+      <p class="modal-note">Each sub-book is hidden until a reader types one of its names into the eye.
+Unseal one here to edit it. Sealed books are not searchable and do not print.</p>
+      <div id="subList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="desc">
+  <div class="modal-card" style="width:min(580px,100%)">
+    <div class="modal-hd">
+      <span>The Descent</span>
+      <button id="descClose" aria-label="Close">×</button>
+    </div>
+    <div class="modal-bd">
+      <p class="modal-note">The background answers to how deep in the book the reader is.
+Before the starting page nothing moves but the usual few limbs. From there it thickens
+over the span you set, until the runes are falling and the water is full of arms.</p>
+      <div class="fields">
+        <label class="full">Descent active <input type="checkbox" id="dOn" checked=""></label>
+        <label>Begins on page <input type="number" id="dStart" min="1" value="6"></label>
+        <label>Full madness after <input type="number" id="dSpan" min="1" value="10"></label>
+        <label>Tentacles before <input type="number" id="dTMin" min="0" max="40" value="6"></label>
+        <label>Tentacles at full <input type="number" id="dTMax" min="0" max="40" value="30"></label>
+        <label>Runes at full <input type="number" id="dRunes" min="0" max="200" value="70"></label>
+        <label>Light fails as you go <input type="checkbox" id="dDim" checked=""></label>
+        <span class="sect">Hydrophone</span>
+        <label>Drone max volume
+          <span class="vwrap"><input type="range" id="dVol" min="0" max="100" value="55"><span class="vnum" id="dVolN">55</span></span>
+        </label>
+        <label>Whisper max volume
+          <span class="vwrap"><input type="range" id="dWVol" min="0" max="100" value="45"><span class="vnum" id="dWVolN">45</span></span>
+        </label>
+        <label>Whose voices
+          <select id="dWVoice">
+            <option value="child">Children</option>
+            <option value="adult">Adults</option>
+            <option value="mixed" selected="">Both</option>
+          </select>
+        </label>
+        <label>Audition <button type="button" id="dTest">Hear one</button></label>
+      </div>
+      <div class="modal-row">
+        <span id="dRead">Here: page 2 · 0% mad</span>
+        <button class="go" id="descDone">Done</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="plateFile" accept="image/*" style="display:none">
+
+<div class="eye-wrap" id="eyeWrap">
+  <div class="eye-panel" id="eyePanel">
+    <input id="eyeInput" placeholder="Name a rule…" autocomplete="off" spellcheck="false" aria-label="Search the rules">
+    <div class="eye-results" id="eyeResults"></div>
+  </div>
+  <button class="eye-btn" id="eyeBtn" aria-label="Search the rules" title="Search the rules  (Ctrl/⌘ K) · drag to move">
+    <svg viewBox="0 0 64 40" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <clipPath id="scleraClip"><path d="M2 20C14 3 50 3 62 20 50 37 14 37 2 20Z"></path></clipPath>
+        <radialGradient id="irisGrad" cx="40%" cy="34%" r="70%">
+          <stop offset="0%" stop-color="#a98cd6"></stop>
+          <stop offset="45%" stop-color="#6a4fa8"></stop>
+          <stop offset="100%" stop-color="#241a40"></stop>
+        </radialGradient>
+      </defs>
+      <path class="sclera" d="M2 20C14 3 50 3 62 20 50 37 14 37 2 20Z"></path>
+      <g class="iris" id="iris" clip-path="url(#scleraClip)" transform="translate(-5.38 -2.56)">
+        <circle class="ir" cx="32" cy="20" r="11.5"></circle>
+        <ellipse class="pu" cx="32" cy="20" rx="3.4" ry="9.5"></ellipse>
+        <circle class="gl" cx="27.5" cy="15.5" r="2.3"></circle>
+      </g>
+      <path class="lid" d="M2 20C14 3 50 3 62 20 50 37 14 37 2 20Z"></path>
+      <path class="rim" d="M2 20C14 3 50 3 62 20 50 37 14 37 2 20Z"></path>
+    </svg>
+  </button>
+</div>
+
+<div class="hint">
+  <span id="madRead">Descent 0%</span>
+  <span><b>Enter</b> new paragraph</span>
+  <span><b>Ctrl/⌘ S</b> save a copy</span>
+  <span><b>Ctrl/⌘ P</b> print</span>
+  <span><b>Red outline</b> means the page is full — add a page and move text down</span>
+</div>
+
+<script>
+/* ── marginalia ──────────────────────────────────────────────── */
+const KELP = `<svg viewBox="0 0 60 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+<path d="M31 0C13 90 47 168 27 258 8 344 44 410 24 500 6 584 42 656 26 748 12 828 38 866 30 900"/>
+<path d="M31 30C46 74 40 118 27 150" stroke-width="1.4"/>
+<path d="M28 240C10 268 6 320 18 356" stroke-width="1.4"/>
+<path d="M26 470C44 502 48 556 36 596" stroke-width="1.4"/>
+<path d="M25 690C9 716 5 762 16 796" stroke-width="1.4"/>
+</g>
+<g fill="currentColor" opacity=".85">
+<path d="M31 62c14-16 26-10 30 4-16 10-26 8-30-4z"/>
+<path d="M29 128c-13-18-26-14-31 0 15 12 25 11 31 0z"/>
+<path d="M27 206c15-14 27-6 29 8-17 8-26 5-29-8z"/>
+<path d="M24 300c-14-16-27-10-30 4 16 10 26 8 30-4z"/>
+<path d="M27 388c15-15 28-8 30 6-17 9-27 6-30-6z"/>
+<path d="M22 466c-13-17-26-12-30 2 15 11 25 10 30-2z"/>
+<path d="M28 552c16-13 28-4 29 10-17 7-26 3-29-10z"/>
+<path d="M24 640c-14-16-27-10-30 4 16 10 26 8 30-4z"/>
+<path d="M27 722c15-14 27-6 29 8-17 8-26 5-29-8z"/>
+<path d="M23 812c-13-17-26-12-30 2 15 11 25 10 30-2z"/>
+</g>
+<g fill="currentColor" opacity=".6">
+<circle cx="37" cy="96" r="4"/><circle cx="17" cy="176" r="3.4"/>
+<circle cx="35" cy="346" r="3.6"/><circle cx="17" cy="516" r="4"/>
+<circle cx="36" cy="606" r="3.4"/><circle cx="18" cy="770" r="3.6"/>
+</g></svg>`;
+
+/* ── block templates ─────────────────────────────────────────── */
+const T = {
+  sec:'<h2 class="sec">Section title</h2>',
+  sub:'<h3 class="sub">Subsection</h3>',
+  run:'<h4 class="run">Run-in head</h4>',
+  lede:'<p class="lede">Opening paragraph.</p>',
+  para:'<p class="cont">New paragraph.</p>',
+  term:'<p class="term"><b>Term:</b> Definition.</p>',
+  ul:'<ul><li>First point</li><li>Second point</li></ul>',
+  ol:'<ol><li>First step</li><li>Second step</li></ol>',
+  tbl:'<table class="tbl"><caption>Table title</caption>'+
+      '<tr><th>Column</th><th>Column</th><th>Column</th></tr>'+
+      '<tr><td>—</td><td>—</td><td>—</td></tr>'+
+      '<tr><td>—</td><td>—</td><td>—</td></tr></table>',
+  profile:'<div class="profile">'+
+      '<span class="st"><i>MOVE</i><b>0"</b></span>'+
+      '<span class="st"><i>TRACK</i><b>0</b></span>'+
+      '<span class="st"><i>STANDS</i><b>0</b></span>'+
+      '<span class="st"><i>COST</i><b>000</b></span></div>',
+  lore:'<div class="box lore"><span class="tab">Label</span><p>Flavour text.</p></div>',
+  reef:'<div class="box reef"><span class="tab">Rules</span><p>Clarification or exception.</p></div>',
+  alarm:'<div class="box alarm"><span class="tab">Label</span><p>Warning text.</p></div>',
+  secret:'<div class="box secret lore"><span class="tab">Sealed</span><p>Hidden lore. Hover to read it, or click the seal to hold it open.</p></div>',
+  pull:'<blockquote class="pull">Pull quote.<cite>\u2014 Attribution</cite></blockquote>',
+  plate:'<div class="plate">Art plate</div>',
+  wave:'<hr class="wave">'
+};
+
+var booted = false;   /* set once the descent config exists */
+const doc = document.getElementById('doc');
+const picker = document.getElementById('pagepick');
+let lastFlow = null;
+let picked = 0;
+
+/* ── page bookkeeping ────────────────────────────────────────── */
+function pages(){ return [...doc.querySelectorAll(':scope > .page')]; }
+function bookPages(){ return [...doc.querySelectorAll('.book.open > .page')]; }
+
+function unwrapSigils(){
+  doc.querySelectorAll('.sigil').forEach(s=>{
+    const txt = s.textContent;
+    s.replaceWith(txt ? document.createTextNode(txt) : '');
+  });
+}
+
+function renumber(){
+  unwrapSigils();
+  const ps = pages();
+  picked = Math.max(0, Math.min(picked, ps.length-1));
+
+  ps.forEach((p,i)=>{
+    /* page one is a left-hand page */
+    p.classList.toggle('verso', i%2===0);
+    p.classList.toggle('recto', i%2===1);
+    p.classList.toggle('picked', i===picked);
+    const n = p.querySelector('.pgnum');
+    if(n) n.textContent = String(i+1).padStart(2,'0');
+    const k = p.querySelector('.kelp');
+    if(k && !k.firstChild) k.innerHTML = KELP;
+    const f = p.querySelector('.flow');
+    if(f && !f.dataset.bound){
+      f.dataset.bound = '1';
+      f.addEventListener('focusin', ()=>{
+        lastFlow = f;
+        const idx = pages().indexOf(f.closest('.page'));
+        if(idx > -1 && idx !== picked){ picked = idx; syncPicker(); }
+      });
+      f.addEventListener('input', checkFit);
+    }
+  });
+
+  syncPicker();
+  if(booted) ensureMargins();
+  checkFit();
+}
+
+function syncPicker(){
+  const ps = pages();
+  picker.innerHTML = ps.map((p,i)=>{
+    const head = (p.querySelector('.r-chapter')?.textContent || '').trim().slice(0,26);
+    return `<option value="${i}">${String(i+1).padStart(2,'0')}${head?' · '+head:''}</option>`;
+  }).join('');
+  picker.value = String(picked);
+  ps.forEach((p,i)=>p.classList.toggle('picked', i===picked));
+}
+
+picker.addEventListener('change', ()=>{
+  picked = parseInt(picker.value,10) || 0;
+  syncPicker();
+  pages()[picked]?.scrollIntoView({behavior:'smooth', block:'center'});
+});
+
+function checkFit(){
+  pages().forEach(p=>{
+    const f = p.querySelector('.flow');
+    p.classList.toggle('overflowing', f.scrollWidth > f.clientWidth + 4);
+  });
+}
+
+function activeFlow(){
+  if(lastFlow && document.contains(lastFlow)) return lastFlow;
+  return pages()[picked]?.querySelector('.flow') || doc.querySelector('.flow');
+}
+
+/* ── insertion at caret ──────────────────────────────────────── */
+function topBlock(node, flow){
+  while(node && node.parentNode !== flow) node = node.parentNode;
+  return node;
+}
+
+function insert(key){
+  const flow = activeFlow();
+  if(!flow) return;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = T[key];
+  const node = tmp.firstElementChild;
+
+  const sel = window.getSelection();
+  let placed = false;
+  if(sel && sel.rangeCount){
+    const anchor = sel.getRangeAt(0).startContainer;
+    if(flow.contains(anchor)){
+      const ref = topBlock(anchor, flow);
+      if(ref){ ref.after(node); placed = true; }
+    }
+  }
+  if(!placed) flow.appendChild(node);
+
+  const target = node.querySelector('td,li,p,cite') || node;
+  const r = document.createRange();
+  r.selectNodeContents(target);
+  const s = window.getSelection();
+  s.removeAllRanges(); s.addRange(r);
+  flow.focus();
+  lastFlow = flow;
+  checkFit();
+}
+
+function currentBlock(){
+  const flow = activeFlow();
+  const sel = window.getSelection();
+  if(!flow || !sel || !sel.rangeCount) return null;
+  const a = sel.getRangeAt(0).startContainer;
+  if(!flow.contains(a)) return null;
+  return topBlock(a, flow);
+}
+
+/* ── zalgo ───────────────────────────────────────────────────── */
+const cp = (a,b)=>{const o=[];for(let i=a;i<=(b??a);i++)o.push(String.fromCharCode(i));return o;};
+const Z_UP = [...cp(0x0300,0x0314),...cp(0x033d,0x0344),...cp(0x0346),...cp(0x034a,0x034c),
+              ...cp(0x0350,0x0352),...cp(0x0357),...cp(0x035b),...cp(0x0363,0x036f)];
+const Z_MID= [...cp(0x0315),...cp(0x031b),...cp(0x0321,0x0322),...cp(0x0327,0x0328),
+              ...cp(0x0334,0x0338),...cp(0x035c,0x0362)];
+const Z_DN = [...cp(0x0316,0x0319),...cp(0x031c,0x0320),...cp(0x0323,0x0333),
+              ...cp(0x0339,0x033c),...cp(0x0345),...cp(0x0347,0x0349),...cp(0x034d,0x034e),
+              ...cp(0x0353,0x0356),...cp(0x0359,0x035a)];
+const Z_LEVELS = {light:[1,0,1], medium:[3,1,3], heavy:[7,2,7]};
+const COMBINING = /[\u0300-\u036f\u0483-\u0489\u1ab0-\u1aff\u1dc0-\u1dff\u20d0-\u20f0]/g;
+
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const upto = n => Math.floor(Math.random()*(n+1));
+
+function zalgo(text, level){
+  const [u,m,d] = Z_LEVELS[level] || Z_LEVELS.medium;
+  return [...text].map(ch=>{
+    if(/[\s\n]/.test(ch)) return ch;
+    let out = ch;
+    for(let i=0;i<upto(u);i++) out += pick(Z_UP);
+    for(let i=0;i<upto(m);i++) out += pick(Z_MID);
+    for(let i=0;i<upto(d);i++) out += pick(Z_DN);
+    return out;
+  }).join('');
+}
+
+function transformSelection(fn, emptyMsg){
+  const sel = window.getSelection();
+  if(!sel || !sel.rangeCount || sel.isCollapsed){ flash(emptyMsg); return; }
+  const host = sel.getRangeAt(0).startContainer.parentElement?.closest('[contenteditable]');
+  if(!host){ flash('Select text on a page first'); return; }
+  const out = fn(sel.toString());
+  document.execCommand('insertText', false, out);
+  checkFit();
+}
+
+/* ── actions ─────────────────────────────────────────────────── */
+const acts = {
+  span(){
+    const b = currentBlock();
+    if(!b){ flash('Put the cursor in a block first'); return; }
+    b.classList.toggle('spanall');
+    checkFit();
+  },
+  delblock(){
+    const b = currentBlock();
+    if(!b){ flash('Put the cursor in a block first'); return; }
+    const next = b.nextElementSibling || b.previousElementSibling;
+    b.remove();
+    if(next){
+      const r = document.createRange();
+      r.selectNodeContents(next); r.collapse(true);
+      const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    }
+    checkFit();
+  },
+  zalgo(){
+    const lvl = document.getElementById('zlevel').value;
+    transformSelection(t=>zalgo(t,lvl), 'Select the text to corrupt first');
+  },
+  unzalgo(){
+    transformSelection(t=>t.normalize('NFC').replace(COMBINING,''), 'Select the text to clean first');
+  },
+  newpage(){
+    const ps = pages();
+    const model = ps[picked] || ps[ps.length-1];
+    const p = model.cloneNode(true);
+    const flow = p.querySelector('.flow');
+    flow.removeAttribute('data-bound');
+    flow.innerHTML = '<p class="cont">New page.</p>';
+    p.classList.remove('overflowing','picked');
+    p.querySelectorAll('.marg').forEach(n=>n.remove());
+    delete p.dataset.margDone;
+    model.after(p);
+    picked = pages().indexOf(p);
+    renumber();
+    p.scrollIntoView({behavior:'smooth', block:'center'});
+    flow.focus();
+    lastFlow = flow;
+  },
+  async delpage(){
+    const ps = pages();
+    if(ps.length < 2){ flash('The book needs at least one page'); return; }
+    const page = ps[picked];
+    if(!page){ flash('No page selected'); return; }
+    const ok = await ask({
+      title:'Delete page ' + (picked+1),
+      message:'Everything on this page goes with it. This cannot be undone.',
+      yes:'Delete page'
+    });
+    if(!ok) return;
+    page.remove();
+    lastFlow = null;
+    picked = Math.min(picked, pages().length-1);
+    renumber();
+    flash('Page deleted');
+  },
+  guides(){ document.body.classList.toggle('guides'); syncToggles(); },
+  kelp(){ document.body.classList.toggle('bare'); syncToggles(); },
+  dark(){ document.body.classList.toggle('abyssal'); syncToggles(); },
+  getrules(){ window.print(); },
+  print(){ window.print(); },
+  save(){
+    const clone = document.documentElement.cloneNode(true);
+    clone.querySelectorAll('.page').forEach(p=>p.classList.remove('overflowing','picked'));
+    clone.querySelectorAll('.flow').forEach(f=>f.removeAttribute('data-bound'));
+    clone.querySelectorAll('.found').forEach(f=>f.classList.remove('found'));
+    clone.querySelector('#eyeWrap')?.classList.remove('open');
+    clone.querySelector('#eyeInput')?.setAttribute('value','');
+    clone.querySelector('#eyeResults')?.replaceChildren();
+    clone.querySelector('#imp')?.classList.remove('open');
+    clone.querySelector('#desc')?.classList.remove('open');
+    clone.querySelector('#sub')?.classList.remove('open');
+    clone.querySelectorAll('.book.open').forEach(b=>b.classList.remove('open'));
+    clone.querySelectorAll('.box.secret.revealed').forEach(b=>b.classList.remove('revealed'));
+    clone.querySelector('#impText')?.replaceChildren();
+    const name = (document.querySelector('.r-chapter')?.textContent || 'cyclopean')
+      .replace(COMBINING,'').replace(/[^\w\s-]/g,'').trim().replace(/\s+/g,'-').toLowerCase() || 'cyclopean';
+    const blob = new Blob(['<!DOCTYPE html>\n' + clone.outerHTML], {type:'text/html'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name + '.html';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+    flash('Saved — reopen that file to keep editing');
+  }
+};
+
+function syncToggles(){
+  const on = (act, state)=> document.querySelectorAll(`[data-act="${act}"]`)
+    .forEach(b=>b.classList.toggle('on', state));
+  const c = document.body.classList;
+  on('tent',   !c.contains('calm'));
+  on('dark',    c.contains('abyssal'));
+  on('guides',  c.contains('guides'));
+  on('kelp',   !c.contains('bare'));
+  on('margins',!c.contains('nomarg'));
+}
+
+function flash(msg){
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText='position:fixed;left:50%;top:84px;transform:translateX(-50%);z-index:99;'+
+    'background:#14566b;color:#e6ebe8;font-family:Zilla Slab,sans-serif;font-size:12px;'+
+    'padding:6px 12px;border:1px solid #2e8ba0;';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 2200);
+}
+
+document.getElementById('bar').addEventListener('click', e=>{
+  const b = e.target.closest('button');
+  if(!b) return;
+  if(b.dataset.ins) insert(b.dataset.ins);
+  else if(b.dataset.act) acts[b.dataset.act](e);
+});
+
+doc.addEventListener('paste', e=>{
+  if(!e.target.closest('[contenteditable]')) return;
+  e.preventDefault();
+  const txt = (e.clipboardData || window.clipboardData).getData('text/plain');
+  document.execCommand('insertText', false, txt);
+});
+
+doc.addEventListener('focusout', e=>{
+  if(e.target.classList?.contains('r-chapter')) syncPicker();
+});
+
+document.addEventListener('keydown', e=>{
+  if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='s' && !document.body.classList.contains('web')){
+    e.preventDefault(); acts.save();
+  }
+});
+
+window.addEventListener('resize', checkFit);
+document.fonts?.ready.then(checkFit);
+renumber();
+
+/* ══════════════════════════════════════════════════════════════
+   DIALOG — sandboxed frames block window.confirm/prompt, so we
+   run our own. Returns null on cancel, string or true on accept.
+   ══════════════════════════════════════════════════════════════ */
+const askEl = document.getElementById('ask');
+const askTitle = document.getElementById('askTitle');
+const askMsg = document.getElementById('askMsg');
+const askInput = document.getElementById('askInput');
+const askYes = document.getElementById('askYes');
+const askNo = document.getElementById('askNo');
+let askResolve = null;
+
+function ask({title='Confirm', message='', value=null, yes='Confirm', no='Cancel'}){
+  askTitle.textContent = title;
+  askMsg.textContent = message;
+  askMsg.style.display = message ? 'block' : 'none';
+  askInput.style.display = value === null ? 'none' : 'block';
+  askInput.value = value ?? '';
+  askYes.textContent = yes;
+  askNo.textContent = no;
+  askEl.classList.add('open');
+  setTimeout(()=>{ value === null ? askYes.focus() : (askInput.focus(), askInput.select()); }, 20);
+  return new Promise(res=>{ askResolve = res; });
+}
+function askClose(result){
+  askEl.classList.remove('open');
+  const r = askResolve; askResolve = null;
+  if(r) r(result);
+}
+askYes.addEventListener('click', ()=>{
+  askClose(askInput.style.display === 'none' ? true : askInput.value);
+});
+askNo.addEventListener('click', ()=>askClose(null));
+askEl.addEventListener('click', e=>{ if(e.target === askEl) askClose(null); });
+askInput.addEventListener('keydown', e=>{
+  if(e.key === 'Enter'){ e.preventDefault(); askClose(askInput.value); }
+  if(e.key === 'Escape'){ e.preventDefault(); askClose(null); }
+});
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && askEl.classList.contains('open')){ e.preventDefault(); askClose(null); }
+});
+
+/* ══════════════════════════════════════════════════════════════
+   LIVING BACKGROUND — tentacles behind the pages, screen only
+   ══════════════════════════════════════════════════════════════ */
+const cv = document.getElementById('tent');
+const ctx = cv.getContext('2d');
+const stillness = window.matchMedia
+  ? window.matchMedia('(prefers-reduced-motion: reduce)')
+  : {matches:false};
+let tents = [], t0 = 0, raf = null;
+
+function sizeCanvas(){
+  const d = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = innerWidth * d;
+  cv.height = innerHeight * d;
+  cv.style.width = innerWidth + 'px';
+  cv.style.height = innerHeight + 'px';
+  ctx.setTransform(d,0,0,d,0,0);
+}
+
+/* how far into the book we are, 0 at the surface, 1 at full madness */
+let MAD = 0;
+
+const DESCENT = {on:true, start:6, span:10, tmin:6, tmax:30, runes:70, dim:true, vol:55, wvol:45, wvoice:'mixed'};
+
+function loadDescent(){
+  try{
+    const raw = document.body.dataset.descent;
+    if(raw) Object.assign(DESCENT, JSON.parse(raw));
+  }catch(_){}
+}
+function storeDescent(){ document.body.dataset.descent = JSON.stringify(DESCENT); }
+
+function pageDepth(){
+  const ps = pages();
+  if(!ps.length) return 1;
+  const first = ps[0].getBoundingClientRect();
+  const step = ps.length > 1
+    ? (ps[1].getBoundingClientRect().top - first.top)
+    : (first.height + 26);
+  return ((innerHeight/2 - first.top) / (step || 1)) + 1;   // 1-based, fractional
+}
+
+function updateMad(){
+  const m = DESCENT.on
+    ? Math.max(0, Math.min(1, (pageDepth() - DESCENT.start) / Math.max(DESCENT.span, 0.001)))
+    : 0;
+  MAD = m;
+  document.documentElement.style.setProperty('--mad', m.toFixed(3));
+  if(DESCENT.dim){
+    const a = Math.round(26 - 18*m), b = Math.round(34 - 24*m), c = Math.round(38 - 26*m);
+    document.body.style.backgroundColor = `rgb(${a},${b},${c})`;
+  } else {
+    document.body.style.backgroundColor = '';
+  }
+  const hud = document.getElementById('madRead');
+  if(hud) hud.textContent = DESCENT.on ? `Descent ${Math.round(m*100)}%` : 'Descent off';
+  const live = document.getElementById('dRead');
+  if(live) live.textContent = `Here: page ${Math.max(1,Math.round(pageDepth()))} · ${Math.round(m*100)}% mad`;
+  syncPopulation();
+  audioLevel();
+}
+
+let madTick = false;
+function queueMad(){
+  if(madTick) return;
+  madTick = true;
+  requestAnimationFrame(()=>{ madTick = false; updateMad(); });
+}
+window.addEventListener('scroll', queueMad, {passive:true});
+
+/* ── tentacles ─────────────────────────────────────────────── */
+function makeTent(left){
+  const w = innerWidth, h = innerHeight;
+  return {
+    x: left ? -30 : w + 30,
+    y: h * (0.02 + 0.96 * Math.random()),
+    base: left ? 0 : Math.PI,
+    segs: 20 + Math.floor(Math.random()*12),
+    seg: 13 + Math.random()*12,
+    thick: 11 + Math.random()*17,
+    phase: Math.random()*Math.PI*2,
+    speed: 0.18 + Math.random()*0.26,
+    curl: 0.08 + Math.random()*0.10,
+    alpha: 0.08 + Math.random()*0.11
+  };
+}
+
+function seedTents(){
+  tents = [];
+  syncPopulation(true);
+}
+
+/* ── descending runes ──────────────────────────────────────── */
+const RUNE_GLYPHS = [...'\u16A0\u16A2\u16A6\u16A8\u16B1\u16B2\u16B7\u16B9\u16BA\u16BE\u16C1\u16C3\u16C7\u16C8\u16C9\u16CA\u16CF\u16D2\u16D6\u16D7\u16DA\u16DC\u16DD\u16DF\u03A8\u03A9\u039E\u03A6\u0398'];
+let runes = [];
+
+function makeRune(){
+  const bright = Math.random() < 0.14;
+  return {
+    x: Math.random() * innerWidth,
+    y: -40 - Math.random() * innerHeight,
+    v: 12 + Math.random() * 46,
+    size: 13 + Math.random() * 22,
+    g: pick(RUNE_GLYPHS),
+    a: 0.20 + Math.random() * 0.45,
+    bright,
+    sway: 6 + Math.random() * 16,
+    ph: Math.random() * 6.28,
+    flick: 0
+  };
+}
+
+function syncPopulation(hard){
+  const wantT = Math.round(DESCENT.tmin + (DESCENT.tmax - DESCENT.tmin) * MAD);
+  const wantR = Math.round(DESCENT.runes * Math.max(0, (MAD - 0.12) / 0.88));
+  if(hard) tents.length = 0;
+  while(tents.length < wantT) tents.push(makeTent(tents.length % 2 === 0));
+  while(tents.length > wantT) tents.pop();
+  while(runes.length < wantR) runes.push(makeRune());
+  while(runes.length > wantR) runes.pop();
+}
+
+function drawRunes(dt, time){
+  if(!runes.length) return;
+  const H = innerHeight;
+  runes.forEach(r=>{
+    r.y += r.v * dt;
+    if(r.y > H + 50){ Object.assign(r, makeRune(), {y: -40}); }
+    if(Math.random() < 0.004) r.g = pick(RUNE_GLYPHS);
+    const x = r.x + Math.sin(time * 0.5 + r.ph) * r.sway;
+    const fade = Math.min(1, MAD * 1.4) * r.a;
+    ctx.font = `${r.size.toFixed(1)}px "Zilla Slab", Georgia, serif`;
+    ctx.fillStyle = r.bright
+      ? `rgba(127,196,214,${fade})`
+      : `rgba(46,139,160,${fade * 0.8})`;
+    ctx.fillText(r.g, x, r.y);
+    /* a short wake trailing above the glyph */
+    ctx.fillStyle = `rgba(46,139,160,${fade * 0.14})`;
+    ctx.fillText(r.g, x, r.y - r.size * 1.25);
+  });
+}
+
+function drawTent(t, time){
+  let x = t.x, y = t.y;
+  let a = t.base + Math.sin(time * t.speed * 0.55 + t.phase) * 0.34;
+  ctx.lineCap = 'round';
+  for(let i=0;i<t.segs;i++){
+    a += Math.sin(time * t.speed + i * 0.42 + t.phase) * t.curl * (1 + MAD * 0.7);
+    const nx = x + Math.cos(a) * t.seg;
+    const ny = y + Math.sin(a) * t.seg;
+    const k = 1 - i / t.segs;
+    ctx.strokeStyle = `rgba(46,139,160,${t.alpha * k * (0.62 + 0.85 * MAD)})`;
+    ctx.lineWidth = t.thick * k * k + 1;
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(nx,ny); ctx.stroke();
+    if(i % 4 === 2){
+      ctx.fillStyle = `rgba(20,86,107,${t.alpha * k * 0.95})`;
+      ctx.beginPath(); ctx.arc(nx, ny, Math.max(1, t.thick * k * 0.17), 0, 6.284); ctx.fill();
+    }
+    x = nx; y = ny;
+  }
+}
+
+let lastTs = 0;
+function frame(ts){
+  if(!t0) t0 = ts;
+  const time = (ts - t0) / 1000;
+  const dt = Math.min(0.05, lastTs ? (ts - lastTs)/1000 : 0.016);
+  lastTs = ts;
+  ctx.clearRect(0,0,innerWidth,innerHeight);
+  tents.forEach(t=>drawTent(t, time));
+  drawRunes(dt, time);
+  raf = requestAnimationFrame(frame);
+}
+
+function startTents(){
+  if(document.body.classList.contains('calm')) return;
+  sizeCanvas();
+  updateMad();
+  if(!tents.length) syncPopulation();
+  if(stillness.matches){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    tents.forEach(t=>drawTent(t, 0));
+    return;
+  }
+  if(!raf) raf = requestAnimationFrame(frame);
+}
+function stopTents(){
+  if(raf){ cancelAnimationFrame(raf); raf = null; }
+  lastTs = 0;
+  ctx.clearRect(0,0,innerWidth,innerHeight);
+}
+
+window.addEventListener('resize', ()=>{ sizeCanvas(); seedTents(); updateMad(); });
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden) { if(raf){cancelAnimationFrame(raf); raf=null;} }
+  else { t0 = 0; startTents(); }
+});
+window.addEventListener('beforeprint', stopTents);
+window.addEventListener('afterprint', ()=>{ t0 = 0; startTents(); });
+startTents();
+
+/* ══════════════════════════════════════════════════════════════
+   THE SOURCE — marked rules and the eye that finds them
+   ══════════════════════════════════════════════════════════════ */
+const norm = s => (s||'').normalize('NFC').replace(COMBINING,'')
+  .toLowerCase().replace(/[\u2018\u2019]/g,"'").replace(/\s+/g,' ').trim();
+const slug = s => norm(s).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+
+function sourcesOf(el){
+  const name = el.dataset.srcName || '';
+  const alts = (el.dataset.srcAlt || '').split('|').map(s=>s.trim()).filter(Boolean);
+  return {name, alts};
+}
+
+Object.assign(acts, {
+  async marksrc(){
+    const b = currentBlock();
+    if(!b){ flash('Put the cursor in the block that IS the rule'); return; }
+    const existing = b.dataset.srcName
+      ? [b.dataset.srcName, ...(b.dataset.srcAlt||'').split('|')].filter(Boolean).join(', ')
+      : norm(b.textContent).slice(0,44);
+    const val = await ask({
+      title:'Mark as the Source',
+      message:'The first name is canonical; add aliases after commas.\ne.g.  Infantry, foot troops, infantry stands',
+      value: existing,
+      yes:'Mark'
+    });
+    if(val === null) return;
+    const parts = String(val).split(',').map(s=>s.trim()).filter(Boolean);
+    if(!parts.length){ flash('Needs at least one name'); return; }
+    b.dataset.srcName = parts[0];
+    if(parts.length > 1) b.dataset.srcAlt = parts.slice(1).join('|');
+    else b.removeAttribute('data-src-alt');
+    b.classList.add('is-source');
+    b.id = 'src-' + (slug(parts[0]) || Math.random().toString(36).slice(2,7));
+    flash('The Source: ' + parts[0]);
+  },
+  unmarksrc(){
+    const b = currentBlock();
+    if(!b || !b.dataset.srcName){ flash('That block is not marked'); return; }
+    const was = b.dataset.srcName;
+    b.removeAttribute('data-src-name');
+    b.removeAttribute('data-src-alt');
+    b.removeAttribute('id');
+    b.classList.remove('is-source');
+    flash('Unmarked: ' + was);
+  },
+  tent(){
+    document.body.classList.toggle('calm');
+    const on = !document.body.classList.contains('calm');
+    syncToggles();
+    if(on){ t0 = 0; startTents(); } else stopTents();
+    startCiphers();
+  },
+  read(){
+    const reading = document.body.classList.toggle('reading');
+    document.querySelectorAll('#doc [contenteditable]').forEach(el=>{
+      el.setAttribute('contenteditable', reading ? 'false' : 'true');
+    });
+    if(reading) flash('Reader mode — pages are locked');
+  }
+});
+
+document.getElementById('readstrip').addEventListener('click', e=>{
+  const b = e.target.closest('button');
+  if(b && b.dataset.act) acts[b.dataset.act](e);
+});
+
+/* ── search index ─────────────────────────────────────────────── */
+function buildIndex(){
+  const idx = [];
+  const scan = (p, tag)=>{
+    p.querySelectorAll('.flow > *').forEach(el=>{
+      const text = norm(el.textContent);
+      if(!text) return;
+      const {name, alts} = sourcesOf(el);
+      idx.push({el, page: tag, text, name, nname: norm(name), nalts: alts.map(norm), alts});
+    });
+  };
+  pages().forEach((p, pi)=> scan(p, String(pi+1).padStart(2,'0')));
+  /* only unsealed sub-books are searchable */
+  doc.querySelectorAll('.book.open').forEach(b=>{
+    const code = b.dataset.code || '??';
+    [...b.querySelectorAll(':scope > .page')].forEach((p, i)=> scan(p, code + ' ' + (i+1)));
+  });
+  return idx;
+}
+
+/* ── the sealed sub-books ─────────────────────────────────────── */
+function books(){ return [...doc.querySelectorAll('.book')]; }
+
+function matchBook(nq){
+  if(!nq) return null;
+  for(const b of books()){
+    const keys = (b.dataset.keys || '').split('|').map(norm).filter(Boolean);
+    if(keys.some(k => k === nq)) return {b, score: 200};
+    if(keys.some(k => k.startsWith(nq) && nq.length >= 3)) return {b, score: 160};
+    if(nq.length >= 4 && keys.some(k => k.includes(nq))) return {b, score: 130};
+  }
+  return null;
+}
+
+function openBook(b, quiet){
+  const first = !b.classList.contains('open');
+  b.classList.add('open');
+  b.querySelectorAll('[contenteditable]').forEach(el=>{
+    el.setAttribute('contenteditable', document.body.classList.contains('reading') ? 'false' : 'true');
+  });
+  refreshCiphers(true);
+  if(!quiet){
+    b.scrollIntoView({behavior:'smooth', block:'start'});
+    if(first) flash('Unsealed — ' + (b.dataset.title || 'a sub-book'));
+  }
+}
+
+function sealBook(b){
+  b.classList.remove('open');
+  flash('Sealed again');
+}
+
+doc.addEventListener('click', e=>{
+  const btn = e.target.closest('.book-head button');
+  if(!btn) return;
+  const b = btn.closest('.book');
+  if(btn.classList.contains('book-seal')){ sealBook(b); return; }
+  if(btn.classList.contains('book-add')){
+    const sheets = [...b.querySelectorAll(':scope > .page')];
+    const model = sheets[sheets.length-1];
+    if(!model) return;
+    const np = model.cloneNode(true);
+    const flow = np.querySelector('.flow');
+    flow.removeAttribute('data-bound');
+    flow.innerHTML = '<p class="cont">New sheet.</p>';
+    np.querySelectorAll('.marg,.stamp').forEach(n=>n.remove());
+    model.after(np);
+    np.scrollIntoView({behavior:'smooth', block:'center'});
+    flash('Sheet added to ' + (b.dataset.code || 'the dossier'));
+  }
+});
+
+function rank(q){
+  const nq = norm(q);
+  if(!nq) return [];
+  const out = [];
+  const hit = matchBook(nq);
+  if(hit) out.push({
+    el: hit.b, book: hit.b, page: hit.b.dataset.code || '',
+    score: hit.score, kind: 'book',
+    label: (hit.b.classList.contains('open') ? 'Open — ' : 'Sealed — ') + (hit.b.dataset.title || '')
+  });
+  buildIndex().forEach(e=>{
+    let score = 0, kind = 'text', label = '';
+    if(e.nname){
+      if(e.nname === nq) score = 100;
+      else if(e.nalts.includes(nq)) score = 92;
+      else if(e.nname.startsWith(nq)) score = 74;
+      else if(e.nalts.some(a=>a.startsWith(nq))) score = 66;
+      else if(e.nname.includes(nq)) score = 48;
+      else if(e.nalts.some(a=>a.includes(nq))) score = 42;
+      else if(e.text.includes(nq)) score = 22;
+      if(score){ kind = 'source'; label = e.name; }
+    }
+    if(!score && e.text.includes(nq)){
+      score = 10;
+      label = e.el.textContent.replace(COMBINING,'').trim().slice(0,64);
+    }
+    if(score) out.push({...e, score, kind, label});
+  });
+  return out.sort((a,b)=> b.score - a.score || a.page - b.page).slice(0,8);
+}
+
+/* ── the eye ──────────────────────────────────────────────────── */
+const eyeWrap = document.getElementById('eyeWrap');
+const eyeBtn = document.getElementById('eyeBtn');
+const eyeInput = document.getElementById('eyeInput');
+const eyeResults = document.getElementById('eyeResults');
+const iris = document.getElementById('iris');
+let hits = [], selIdx = 0;
+
+function openEye(){
+  eyeWrap.classList.add('open');
+  eyeInput.focus();
+  eyeInput.select();
+  render();
+}
+function closeEye(){
+  eyeWrap.classList.remove('open');
+  eyeInput.blur();
+}
+
+function render(){
+  const q = eyeInput.value;
+  hits = rank(q);
+  selIdx = 0;
+  if(!q.trim()){
+    const marked = buildIndex().filter(e=>e.nname);
+    eyeResults.innerHTML = marked.length
+      ? marked.slice(0,8).map((e,i)=>row(e.name,'source',e.page,i)).join('')
+      : '<div class="eye-empty">Nothing marked yet. Put the cursor in a rule and press Mark as Source.</div>';
+    hits = marked.slice(0,8).map(e=>({...e, label:e.name, kind:'source'}));
+    return;
+  }
+  eyeResults.innerHTML = hits.length
+    ? hits.map((h,i)=>row(h.label, h.kind, h.page, i)).join('')
+    : '<div class="eye-empty">The eye finds nothing by that name.</div>';
+}
+
+function row(label, kind, page, i){
+  const safe = String(label).replace(/[<>&]/g, c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+  const cls = kind === 'book' ? 'bk' : kind === 'source' ? '' : 'txt';
+  const kd = kind === 'book' ? 'Unseal' : kind === 'source' ? 'Source' : 'in text';
+  const pg = String(page).match(/^\d+$/) ? 'p' + String(page).padStart(2,'0') : String(page);
+  return `<button class="res ${cls}${i===0?' sel':''}" data-i="${i}">
+    <span class="nm">${safe}</span>
+    <span class="kd">${kd}</span>
+    <span class="pg">${pg}</span></button>`;
+}
+
+function highlight(){
+  [...eyeResults.querySelectorAll('.res')].forEach((r,i)=>r.classList.toggle('sel', i===selIdx));
+}
+
+function jump(i){
+  const h = hits[i];
+  if(!h) return;
+  closeEye();
+  if(h.kind === 'book'){ openBook(h.book); return; }
+  h.el.scrollIntoView({behavior:'smooth', block:'center'});
+  h.el.classList.remove('found');
+  void h.el.offsetWidth;
+  h.el.classList.add('found');
+  setTimeout(()=>h.el.classList.remove('found'), 2700);
+  if(h.el.id) history.replaceState(null, '', '#' + h.el.id);
+}
+
+eyeInput.addEventListener('input', render);
+eyeInput.addEventListener('keydown', e=>{
+  if(e.key === 'ArrowDown'){ e.preventDefault(); selIdx = Math.min(selIdx+1, hits.length-1); highlight(); }
+  else if(e.key === 'ArrowUp'){ e.preventDefault(); selIdx = Math.max(selIdx-1, 0); highlight(); }
+  else if(e.key === 'Enter'){ e.preventDefault(); jump(selIdx); }
+  else if(e.key === 'Escape'){ e.preventDefault(); closeEye(); }
+});
+eyeResults.addEventListener('click', e=>{
+  const r = e.target.closest('.res');
+  if(r) jump(parseInt(r.dataset.i, 10));
+});
+
+/* pupil tracks the cursor */
+document.addEventListener('mousemove', e=>{
+  const b = eyeBtn.getBoundingClientRect();
+  const dx = e.clientX - (b.left + b.width/2);
+  const dy = e.clientY - (b.top + b.height/2);
+  const d = Math.hypot(dx,dy) || 1;
+  const r = Math.min(d/40, 1);
+  iris.setAttribute('transform', `translate(${(dx/d*7*r).toFixed(2)} ${(dy/d*4*r).toFixed(2)})`);
+});
+
+document.addEventListener('keydown', e=>{
+  if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); openEye(); }
+  else if(e.key === '/' && !e.target.closest('[contenteditable="true"], input, select')){
+    e.preventDefault(); openEye();
+  }
+});
+
+/* ══════════════════════════════════════════════════════════════
+   IMPORT — markdown, unit JSON, or pages from a saved copy
+   ══════════════════════════════════════════════════════════════ */
+const esc = s => String(s ?? '').replace(/[<>&]/g, c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const inline = s => esc(s)
+  .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
+  .replace(/(^|[^*])\*([^*]+)\*/g,'$1<i>$2</i>')
+  .replace(/`([^`]+)`/g,'<span style="font-family:IBM Plex Mono,monospace;font-size:.9em">$1</span>');
+
+/* ── markdown → blocks ────────────────────────────────────────── */
+function parseMarkdown(src, opts){
+  const lines = src.replace(/\r/g,'').split('\n');
+  const out = [];
+  let pending = null;          // @source waiting for the next block
+  let afterSection = false;
+  const push = (html)=>{ out.push({html, source: pending}); pending = null; };
+
+  for(let i=0;i<lines.length;i++){
+    let ln = lines[i];
+    const t = ln.trim();
+
+    if(!t){ continue; }
+
+    /* @source Infantry, foot troops */
+    const src_ = t.match(/^@source\s+(.+)$/i);
+    if(src_){ if(opts.honourSource) pending = src_[1].trim(); continue; }
+
+    /* @profile MOVE 5" | TRACK 4-4 | COST 145 */
+    const prof = t.match(/^@profile\s+(.+)$/i);
+    if(prof){
+      const cells = prof[1].split('|').map(s=>s.trim()).filter(Boolean).map(pair=>{
+        const m = pair.match(/^(\S+)\s+(.+)$/);
+        return m ? `<span class="st"><i>${esc(m[1])}</i><b>${esc(m[2])}</b></span>`
+                 : `<span class="st"><b>${esc(pair)}</b></span>`;
+      }).join('');
+      push(`<div class="profile">${cells}</div>`);
+      continue;
+    }
+
+    /* ::: box fences */
+    const fence = t.match(/^:::\s*(lore|rules|warning|alarm|secret|sealed)?\s*(.*)$/i);
+    if(fence){
+      const kind = (fence[1]||'lore').toLowerCase();
+      const cls = kind === 'rules' ? 'reef'
+                : (kind === 'warning' || kind === 'alarm') ? 'alarm'
+                : (kind === 'secret' || kind === 'sealed') ? 'secret lore'
+                : 'lore';
+      const label = fence[2].trim() || (cls === 'reef' ? 'Rules' : cls.startsWith('secret') ? 'Sealed' : 'Label');
+      const body = [];
+      i++;
+      while(i < lines.length && !/^:::\s*$/.test(lines[i].trim())){ body.push(lines[i]); i++; }
+      const paras = body.join('\n').split(/\n{2,}/).map(p=>p.trim()).filter(Boolean)
+        .map(p=>`<p>${inline(p.replace(/\n/g,' '))}</p>`).join('');
+      push(`<div class="box ${cls}"><span class="tab">${esc(label)}</span>${paras || '<p></p>'}</div>`);
+      continue;
+    }
+
+    /* headings */
+    let m;
+    if((m = t.match(/^###\s+(.+)$/))){ push(`<h4 class="run">${inline(m[1])}</h4>`); continue; }
+    if((m = t.match(/^##\s+(.+)$/))){ push(`<h3 class="sub">${inline(m[1])}</h3>`); continue; }
+    if((m = t.match(/^#\s+(.+)$/))){ push(`<h2 class="sec">${inline(m[1])}</h2>`); afterSection = true; continue; }
+
+    /* rule */
+    if(/^(-{3,}|\*{3,}|_{3,})$/.test(t)){ push('<hr class="wave">'); continue; }
+
+    /* table */
+    if(/^\|.*\|$/.test(t)){
+      const rows = [];
+      while(i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])){
+        const cells = lines[i].trim().replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+        if(!cells.every(c=>/^:?-{2,}:?$/.test(c))) rows.push(cells);
+        i++;
+      }
+      i--;
+      if(rows.length){
+        const head = rows.shift();
+        const thead = `<tr>${head.map(c=>`<th>${inline(c)}</th>`).join('')}</tr>`;
+        const body = rows.map(r=>`<tr>${r.map(c=>`<td>${inline(c)}</td>`).join('')}</tr>`).join('');
+        push(`<table class="tbl">${thead}${body}</table>`);
+      }
+      continue;
+    }
+
+    /* blockquote → pull quote */
+    if(/^>\s?/.test(t)){
+      const buf = [];
+      while(i < lines.length && /^\s*>\s?/.test(lines[i])){ buf.push(lines[i].replace(/^\s*>\s?/,'')); i++; }
+      i--;
+      let cite = '';
+      if(buf.length && /^[—-]{1,2}\s*\S/.test(buf[buf.length-1].trim())){
+        cite = `<cite>— ${inline(buf.pop().trim().replace(/^[—-]{1,2}\s*/,''))}</cite>`;
+      }
+      push(`<blockquote class="pull">${inline(buf.join(' '))}${cite}</blockquote>`);
+      continue;
+    }
+
+    /* lists */
+    if(/^([-*+]|\d+[.)])\s+/.test(t)){
+      const ordered = /^\d+[.)]\s+/.test(t);
+      const items = [];
+      while(i < lines.length && /^\s*([-*+]|\d+[.)])\s+/.test(lines[i])){
+        items.push(inline(lines[i].trim().replace(/^([-*+]|\d+[.)])\s+/,'')));
+        i++;
+      }
+      i--;
+      const tag = ordered ? 'ol' : 'ul';
+      push(`<${tag}>${items.map(x=>`<li>${x}</li>`).join('')}</${tag}>`);
+      continue;
+    }
+
+    /* paragraph — gather until blank line */
+    const buf = [t];
+    while(i+1 < lines.length && lines[i+1].trim() &&
+          !/^(#{1,3}\s|>|:::|\||@|[-*+]\s|\d+[.)]\s|-{3,}$)/.test(lines[i+1].trim())){
+      buf.push(lines[i+1].trim()); i++;
+    }
+    const text = buf.join(' ');
+    const term = text.match(/^\*\*([^*]+?):\*\*\s*(.+)$/);
+    if(term){
+      push(`<p class="term"><b>${esc(term[1])}:</b> ${inline(term[2])}</p>`);
+    } else if(afterSection && opts.lede){
+      push(`<p class="lede">${inline(text)}</p>`);
+      afterSection = false;
+    } else {
+      push(`<p class="cont">${inline(text)}</p>`);
+    }
+  }
+  return out;
+}
+
+/* ── unit JSON → blocks ───────────────────────────────────────── */
+const SCALARS = [
+  ['MOVE', ['move','movement','mv']],
+  ['TRACK',['track','woundtrack','wound_track','wounds','wt']],
+  ['STANDS',['stands','models','count']],
+  ['SKILL',['skill','fighting','fightingskill','fs']],
+  ['COST', ['cost','points','pts','price']]
+];
+
+function parseUnitJson(src){
+  let data = JSON.parse(src);
+  if(!Array.isArray(data)) data = data.units || data.roster || [data];
+  const out = [];
+  const get = (o, keys)=>{
+    for(const k of Object.keys(o)){
+      if(keys.includes(k.toLowerCase().replace(/[\s_-]/g,''))) return o[k];
+    }
+    return undefined;
+  };
+  data.forEach(u=>{
+    if(!u || typeof u !== 'object') return;
+    const name = u.name || u.unit || u.title || 'Unit';
+    out.push({html:`<h3 class="sub">${esc(name)}</h3>`, source:name});
+
+    const cells = SCALARS.map(([lab,keys])=>{
+      const v = get(u, keys);
+      return v == null || v === '' ? null : `<span class="st"><i>${lab}</i><b>${esc(v)}</b></span>`;
+    }).filter(Boolean).join('');
+    if(cells) out.push({html:`<div class="profile">${cells}</div>`, source:null});
+
+    const weapons = u.weapons || u.profiles || u.guns;
+    if(Array.isArray(weapons) && weapons.length && typeof weapons[0] === 'object'){
+      const cols = [...new Set(weapons.flatMap(w=>Object.keys(w)))];
+      const thead = `<tr>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr>`;
+      const rows = weapons.map(w=>`<tr>${cols.map(c=>{
+        const v = w[c];
+        return `<td>${esc(Array.isArray(v) ? v.join(', ') : (v ?? '—'))}</td>`;
+      }).join('')}</tr>`).join('');
+      out.push({html:`<table class="tbl"><caption>${esc(name)} — weapons</caption>${thead}${rows}</table>`, source:null});
+    }
+
+    const abils = u.abilities || u.rules || u.special;
+    if(Array.isArray(abils)){
+      abils.forEach(a=>{
+        if(typeof a === 'string'){
+          out.push({html:`<p class="term">${inline(a)}</p>`, source:null});
+        } else if(a && typeof a === 'object'){
+          const an = a.name || a.title || 'Ability';
+          const at = a.text || a.description || a.effect || '';
+          out.push({html:`<p class="term"><b>${esc(an)}:</b> ${inline(at)}</p>`, source:an});
+        }
+      });
+    }
+
+    const notes = u.notes || u.flavour || u.flavor || u.lore;
+    if(typeof notes === 'string' && notes.trim()){
+      out.push({html:`<div class="box lore"><span class="tab">Note</span><p>${inline(notes)}</p></div>`, source:null});
+    }
+  });
+  return out;
+}
+
+/* ── pour blocks across pages ─────────────────────────────────── */
+function makePageAfter(model){
+  const p = model.cloneNode(true);
+  const flow = p.querySelector('.flow');
+  flow.removeAttribute('data-bound');
+  flow.innerHTML = '';
+  p.classList.remove('overflowing','picked');
+  p.querySelectorAll('.found').forEach(f=>f.classList.remove('found'));
+  p.querySelectorAll('.marg').forEach(n=>n.remove());
+  delete p.dataset.margDone;
+  model.after(p);
+  return p;
+}
+
+function isPlaceholder(flow){
+  const txt = norm(flow.textContent);
+  return !txt || txt === 'new page.' || txt === 'continued.' ||
+         txt === 'section title opening paragraph. following paragraph.';
+}
+
+function pour(blocks, startFresh){
+  if(!blocks.length){ flash('Nothing to import'); return; }
+  const ps = pages();
+  let page = ps[picked] || ps[ps.length-1];
+  let flow = page.querySelector('.flow');
+
+  if(startFresh || isPlaceholder(flow)){
+    if(isPlaceholder(flow) && !startFresh) flow.innerHTML = '';
+    else { page = makePageAfter(page); flow = page.querySelector('.flow'); }
+  }
+
+  let added = 0, spilled = 0;
+  blocks.forEach(b=>{
+    flow.insertAdjacentHTML('beforeend', b.html);
+    let el = flow.lastElementChild;
+    if(!el) return;
+
+    if(flow.scrollWidth > flow.clientWidth + 4){
+      if(flow.children.length === 1){
+        /* single block taller than a page — leave it and flag the page */
+      } else {
+        page = makePageAfter(page);
+        flow = page.querySelector('.flow');
+        flow.appendChild(el);
+        spilled++;
+      }
+    }
+    if(b.source){
+      el.dataset.srcName = b.source;
+      el.classList.add('is-source');
+      el.id = 'src-' + (slug(b.source) || Math.random().toString(36).slice(2,7));
+    }
+    added++;
+  });
+
+  picked = pages().indexOf(page);
+  renumber();
+  page.scrollIntoView({behavior:'smooth', block:'center'});
+  flash(`${added} blocks poured across ${spilled+1} page${spilled?'s':''}`);
+}
+
+/* ── saved-copy page import ───────────────────────────────────── */
+function importPages(html){
+  const parsed = new DOMParser().parseFromString(html, 'text/html');
+  const incoming = [...parsed.querySelectorAll('.page')];
+  if(!incoming.length){ flash('No pages found in that file'); return; }
+  let anchor = pages()[picked];
+  incoming.forEach(p=>{
+    const node = document.importNode(p, true);
+    node.classList.remove('picked','overflowing','recto','verso');
+    node.querySelectorAll('.flow').forEach(f=>{
+      f.removeAttribute('data-bound');
+      f.setAttribute('contenteditable', document.body.classList.contains('reading') ? 'false' : 'true');
+    });
+    anchor.after(node);
+    anchor = node;
+  });
+  picked = pages().indexOf(anchor);
+  renumber();
+  anchor.scrollIntoView({behavior:'smooth', block:'center'});
+  flash(`${incoming.length} page${incoming.length>1?'s':''} imported`);
+}
+
+/* ── modal wiring ─────────────────────────────────────────────── */
+const imp = document.getElementById('imp');
+const impText = document.getElementById('impText');
+const impNote = document.getElementById('impNote');
+let impMode = 'md';
+
+const NOTES = {
+  md:
+`<b># Section</b>  <b>## Subhead</b>  <b>### Run-in head</b>
+<b>**Term:** definition</b> → hanging term entry
+<b>- item</b> / <b>1. item</b> → lists   <b>|a|b|</b> rows → table
+<b>> quote</b> with a final <b>— name</b> line → pull quote
+<b>@profile MOVE 5" | TRACK 4-4 | COST 145</b> → profile strip
+<b>@source Infantry, foot troops</b> → marks the NEXT block as the Source
+<b>:::rules Label</b> … <b>:::</b>   (also :::lore, :::warning, :::secret)`,
+  json:
+`An array of unit objects, or { "units": [ … ] }.
+Recognised: <b>name</b>, <b>move</b>, <b>track</b>, <b>stands</b>, <b>skill</b>, <b>cost/points</b>,
+<b>weapons</b> [ {…} ] → table (columns taken from the keys),
+<b>abilities</b> [ {name, text} ] → term entries,
+<b>notes</b> → lore box.
+Each unit name is marked as a Source automatically.`,
+  html:
+`Paste or open a previously saved copy of this file.
+Its pages are inserted after the selected page, with all
+marked Sources intact. Nothing on your current pages is touched.`
+};
+
+function setMode(m){
+  impMode = m;
+  document.querySelectorAll('#impSegs .seg').forEach(s=>s.classList.toggle('on', s.dataset.mode === m));
+  impNote.innerHTML = NOTES[m];
+  document.getElementById('impLede').closest('label').style.opacity = m === 'md' ? 1 : .35;
+  document.getElementById('impSrcAuto').closest('label').style.opacity = m === 'md' ? 1 : .35;
+  document.getElementById('impNew').closest('label').style.opacity = m === 'html' ? .35 : 1;
+}
+
+document.getElementById('impSegs').addEventListener('click', e=>{
+  const s = e.target.closest('.seg');
+  if(s) setMode(s.dataset.mode);
+});
+
+document.getElementById('impFile').addEventListener('change', async e=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const txt = await f.text();
+  impText.value = txt;
+  if(/\.(html?|htm)$/i.test(f.name)) setMode('html');
+  else if(/\.json$/i.test(f.name)) setMode('json');
+  else setMode('md');
+  flash(f.name + ' loaded — press Pour');
+});
+
+document.getElementById('impGo').addEventListener('click', ()=>{
+  const src = impText.value.trim();
+  if(!src){ flash('Paste something first'); return; }
+  try{
+    if(impMode === 'html'){
+      importPages(src);
+    } else if(impMode === 'json'){
+      pour(parseUnitJson(src), document.getElementById('impNew').checked);
+    } else {
+      pour(parseMarkdown(src, {
+        lede: document.getElementById('impLede').checked,
+        honourSource: document.getElementById('impSrcAuto').checked
+      }), document.getElementById('impNew').checked);
+    }
+    imp.classList.remove('open');
+    impText.value = '';
+  }catch(err){
+    flash('Could not read that: ' + err.message);
+  }
+});
+
+document.getElementById('impClose').addEventListener('click', ()=>imp.classList.remove('open'));
+imp.addEventListener('click', e=>{ if(e.target === imp) imp.classList.remove('open'); });
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && imp.classList.contains('open')) imp.classList.remove('open');
+});
+
+Object.assign(acts, {
+  import(){ setMode(impMode); imp.classList.add('open'); impText.focus(); }
+});
+
+setMode('md');
+
+/* ══════════════════════════════════════════════════════════════
+   ART PLATES — click to place an image, downscaled and embedded
+   ══════════════════════════════════════════════════════════════ */
+const plateInput = document.getElementById('plateFile');
+let plateTarget = null;
+const MAX_EDGE = 1400;
+
+function downscale(file){
+  return new Promise((res, rej)=>{
+    const fr = new FileReader();
+    fr.onerror = ()=>rej(new Error('could not read that file'));
+    fr.onload = ()=>{
+      const img = new Image();
+      img.onerror = ()=>rej(new Error('not a readable image'));
+      img.onload = ()=>{
+        const scale = Math.min(1, MAX_EDGE / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const g = c.getContext('2d');
+        g.drawImage(img, 0, 0, w, h);
+        const alpha = /png|webp|gif|svg/i.test(file.type);
+        res({url: c.toDataURL(alpha ? 'image/png' : 'image/jpeg', 0.85), w, h});
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+async function placeImage(plate, file){
+  if(!file || !/^image\//.test(file.type)){ flash('That is not an image'); return; }
+  try{
+    const {url, w, h} = await downscale(file);
+    const cap = plate.querySelector('.cap')?.textContent || 'Caption';
+    plate.classList.add('has-img');
+    plate.innerHTML = `<img src="${url}" alt=""><span class="cap">${esc(cap)}</span>`;
+    const kb = Math.round(url.length * 0.75 / 1024);
+    flash(`Image placed · ${w}×${h} · ~${kb} KB embedded`);
+    checkFit();
+  }catch(err){
+    flash('Image failed: ' + err.message);
+  }
+}
+
+doc.addEventListener('click', e=>{
+  if(document.body.classList.contains('reading')) return;
+  const plate = e.target.closest('.plate');
+  if(!plate) return;
+  if(e.target.classList.contains('cap')) return;   // let the caption be edited
+  plateTarget = plate;
+  plateInput.value = '';
+  plateInput.click();
+});
+
+plateInput.addEventListener('change', e=>{
+  const f = e.target.files[0];
+  if(f && plateTarget) placeImage(plateTarget, f);
+});
+
+doc.addEventListener('dragover', e=>{
+  if(e.target.closest('.plate')){ e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }
+});
+doc.addEventListener('drop', e=>{
+  const plate = e.target.closest('.plate');
+  if(!plate) return;
+  e.preventDefault();
+  const f = e.dataTransfer.files[0];
+  if(f) placeImage(plate, f);
+});
+
+/* ══════════════════════════════════════════════════════════════
+   THE EYE MOVES — drag it anywhere; the position rides along in
+   saved copies as an inline style
+   ══════════════════════════════════════════════════════════════ */
+(function makeEyeDraggable(){
+  let dragging = false, moved = false, offX = 0, offY = 0, sx = 0, sy = 0;
+
+  function placeAt(left, top){
+    const r = eyeWrap.getBoundingClientRect();
+    const L = Math.max(8, Math.min(left, innerWidth - r.width - 8));
+    const T = Math.max(8, Math.min(top, innerHeight - r.height - 8));
+    eyeWrap.style.left = L + 'px';
+    eyeWrap.style.top = T + 'px';
+    eyeWrap.style.right = 'auto';
+    eyeWrap.style.bottom = 'auto';
+    /* flip the panel to whichever side has room */
+    eyeWrap.classList.toggle('below', T < innerHeight * 0.45);
+    eyeWrap.classList.toggle('leftish', L < innerWidth * 0.5);
+  }
+
+  eyeBtn.addEventListener('pointerdown', e=>{
+    if(e.button !== 0) return;
+    const r = eyeWrap.getBoundingClientRect();
+    offX = e.clientX - r.left;
+    offY = e.clientY - r.top;
+    sx = e.clientX; sy = e.clientY;
+    dragging = true; moved = false;
+    eyeBtn.setPointerCapture(e.pointerId);
+  });
+
+  eyeBtn.addEventListener('pointermove', e=>{
+    if(!dragging) return;
+    if(!moved && Math.hypot(e.clientX - sx, e.clientY - sy) < 4) return;
+    moved = true;
+    eyeWrap.classList.add('dragging');
+    placeAt(e.clientX - offX, e.clientY - offY);
+  });
+
+  eyeBtn.addEventListener('pointerup', e=>{
+    if(!dragging) return;
+    dragging = false;
+    eyeWrap.classList.remove('dragging');
+    try{ eyeBtn.releasePointerCapture(e.pointerId); }catch(_){}
+    if(moved) flash('Eye moved — Save copy to keep it there');
+    else eyeWrap.classList.contains('open') ? closeEye() : openEye();
+  });
+
+  eyeBtn.addEventListener('dblclick', ()=>{
+    eyeWrap.removeAttribute('style');
+    eyeWrap.classList.remove('below','leftish');
+    flash('Eye returned to its corner');
+  });
+
+  window.addEventListener('resize', ()=>{
+    if(!eyeWrap.style.left) return;
+    placeAt(parseFloat(eyeWrap.style.left), parseFloat(eyeWrap.style.top));
+  });
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   CIPHERED TEXT — the real words stay in the DOM (searchable,
+   printable); a scrambled overlay covers them until hovered
+   ══════════════════════════════════════════════════════════════ */
+const CIPH_UP = [...'ΔΞΨΩΦΘΓΛΣΠЖЗИЛФЦЧШЩЪЫЭЮЯҊҔҖҘҚҞҠҢҮҲҶҺӁӃᛃᛇᛈᛉᛊᛒᛗ'];
+const CIPH_LO = [...'ςδεζηθκλμνξπρστυφχψωаджзиклмнптфцчшщъыьэюяɐʖʇɟɥʞɯɹʌʍʎ'];
+const CIPH_NUM = [...'0123456789ϑϖϗϟ'];
+
+function scramble(s){
+  return [...s].map(ch=>{
+    if(/\s/.test(ch)) return ch;
+    if(/[A-ZА-Я]/.test(ch)) return pick(CIPH_UP);
+    if(/[a-zа-я]/.test(ch)) return pick(CIPH_LO);
+    if(/[0-9]/.test(ch)) return pick(CIPH_NUM);
+    return ch;
+  }).join('');
+}
+
+const cipherTargets = () => [...document.querySelectorAll('.cipher, .box.secret p')];
+
+function inView(el){
+  const r = el.getBoundingClientRect();
+  return r.bottom > -80 && r.top < innerHeight + 80;
+}
+
+function refreshCiphers(all){
+  cipherTargets().forEach(el=>{
+    const real = el.textContent;
+    if(!real.trim()){ el.removeAttribute('data-scram'); return; }
+    if(!all && !inView(el)) return;
+    if(el.matches(':hover') || el.closest('.box.secret:hover, .box.secret.revealed')) return;
+    el.dataset.scram = scramble(real);
+  });
+}
+
+let cipherTimer = null;
+function startCiphers(){
+  clearInterval(cipherTimer);
+  refreshCiphers(true);
+  if(document.body.classList.contains('calm') || stillness.matches) return;
+  cipherTimer = setInterval(()=>refreshCiphers(false), 260);
+}
+
+/* keep the overlay in step while typing */
+doc.addEventListener('input', ()=>refreshCiphers(true));
+
+/* the tab is the seal — click it to hold a secret box open */
+doc.addEventListener('click', e=>{
+  const box = e.target.closest('.box.secret');
+  if(!box) return;
+  const onTab = e.target.classList.contains('tab');
+  if(onTab || document.body.classList.contains('reading')){
+    box.classList.toggle('revealed');
+    if(box.classList.contains('revealed')) flash('Revealed');
+  }
+});
+
+Object.assign(acts, {
+  cipher(){
+    const sel = window.getSelection();
+    if(!sel || !sel.rangeCount || sel.isCollapsed){ flash('Select the text to scramble first'); return; }
+    if(!sel.getRangeAt(0).startContainer.parentElement?.closest('#doc [contenteditable]')){
+      flash('Select text on a page first'); return;
+    }
+    const txt = sel.toString();
+    document.execCommand('insertHTML', false,
+      `<span class="cipher" data-scram="${esc(scramble(txt))}">${esc(txt)}</span>`);
+    refreshCiphers(true);
+    flash('Ciphered — hover to read');
+  },
+  uncipher(){
+    const sel = window.getSelection();
+    const node = sel && sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
+    const sp = node && (node.nodeType === 1 ? node : node.parentElement)?.closest('.cipher');
+    if(!sp){ flash('Put the cursor inside ciphered text'); return; }
+    sp.replaceWith(document.createTextNode(sp.textContent));
+    flash('Cleared');
+  }
+});
+
+startCiphers();
+
+/* ══════════════════════════════════════════════════════════════
+   DESCENT PANEL
+   ══════════════════════════════════════════════════════════════ */
+const descEl = document.getElementById('desc');
+const dF = {
+  on: document.getElementById('dOn'),
+  start: document.getElementById('dStart'),
+  span: document.getElementById('dSpan'),
+  tmin: document.getElementById('dTMin'),
+  tmax: document.getElementById('dTMax'),
+  runes: document.getElementById('dRunes'),
+  dim: document.getElementById('dDim'),
+  vol: document.getElementById('dVol'),
+  wvol: document.getElementById('dWVol'),
+  wvoice: document.getElementById('dWVoice')
+};
+
+function fieldsFromCfg(){
+  dF.on.checked = DESCENT.on;
+  dF.dim.checked = DESCENT.dim;
+  dF.start.value = DESCENT.start;
+  dF.span.value = DESCENT.span;
+  dF.tmin.value = DESCENT.tmin;
+  dF.tmax.value = DESCENT.tmax;
+  dF.runes.value = DESCENT.runes;
+  dF.vol.value = DESCENT.vol ?? 55;
+  dF.wvol.value = DESCENT.wvol ?? 45;
+  dF.wvoice.value = DESCENT.wvoice || 'mixed';
+  showVols();
+}
+
+function showVols(){
+  const a = document.getElementById('dVolN'), b = document.getElementById('dWVolN');
+  if(a) a.textContent = dF.vol.value;
+  if(b) b.textContent = dF.wvol.value;
+}
+
+function cfgFromFields(){
+  DESCENT.on = dF.on.checked;
+  DESCENT.dim = dF.dim.checked;
+  DESCENT.start = Math.max(1, parseInt(dF.start.value,10) || 1);
+  DESCENT.span = Math.max(1, parseInt(dF.span.value,10) || 1);
+  DESCENT.tmin = Math.max(0, Math.min(40, parseInt(dF.tmin.value,10) || 0));
+  DESCENT.tmax = Math.max(0, Math.min(40, parseInt(dF.tmax.value,10) || 0));
+  DESCENT.runes = Math.max(0, Math.min(200, parseInt(dF.runes.value,10) || 0));
+  DESCENT.vol = Math.max(0, Math.min(100, parseInt(dF.vol.value,10) || 0));
+  DESCENT.wvol = Math.max(0, Math.min(100, parseInt(dF.wvol.value,10) || 0));
+  DESCENT.wvoice = dF.wvoice.value;
+  showVols();
+  storeDescent();
+  resetMargins();
+  updateMad();
+  if(!document.body.classList.contains('calm')){ t0 = 0; startTents(); }
+}
+
+Object.values(dF).forEach(el=>el.addEventListener('input', cfgFromFields));
+
+document.getElementById('dTest').addEventListener('click', async ()=>{
+  if(!audioOn) await toggleSound();
+  if(!AC) return;
+  const g = whisperGain ? whisperGain.gain.value : 0;
+  if(whisperGain && g < 0.05) whisperGain.gain.setTargetAtTime(0.22, AC.currentTime, 0.1);
+  utterance();
+  if(whisperGain && g < 0.05){
+    setTimeout(()=>whisperGain.gain.setTargetAtTime(g, AC.currentTime, 0.6), 3500);
+  }
+});
+
+document.getElementById('descClose').addEventListener('click', ()=>descEl.classList.remove('open'));
+document.getElementById('descDone').addEventListener('click', ()=>descEl.classList.remove('open'));
+descEl.addEventListener('click', e=>{ if(e.target === descEl) descEl.classList.remove('open'); });
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && descEl.classList.contains('open')) descEl.classList.remove('open');
+});
+
+const subEl = document.getElementById('sub');
+function renderSubList(){
+  const list = document.getElementById('subList');
+  list.innerHTML = books().map((b, i)=>{
+    const open = b.classList.contains('open');
+    return `<div class="subrow" data-i="${i}">
+      <span class="st">
+        <span class="sn">${(b.dataset.title||'').replace(/[<>&]/g,'')}</span>
+        <span class="sk">${(b.dataset.keys||'').split('|').join(' · ')}</span>
+      </span>
+      <button data-toggle="${i}">${open ? 'Seal' : 'Unseal'}</button>
+    </div>`;
+  }).join('');
+}
+document.getElementById('subList').addEventListener('click', e=>{
+  const btn = e.target.closest('[data-toggle]');
+  if(!btn) return;
+  const b = books()[parseInt(btn.dataset.toggle, 10)];
+  if(!b) return;
+  b.classList.contains('open') ? sealBook(b) : openBook(b, true);
+  renderSubList();
+});
+document.getElementById('subClose').addEventListener('click', ()=>subEl.classList.remove('open'));
+subEl.addEventListener('click', e=>{ if(e.target === subEl) subEl.classList.remove('open'); });
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && subEl.classList.contains('open')) subEl.classList.remove('open');
+});
+
+Object.assign(acts, {
+  async exportweb(){
+    const title = (document.querySelector('.r-part')?.textContent || 'Cyclopean').trim();
+    const name = await ask({
+      title:'Export for the web',
+      message:'Writes a read-only copy with the editor stripped out — no toolbar, nothing '
+            + 'editable, sub-books sealed. The reader gets the eye, and four controls: '
+            + 'Drone, Motion, Abyssal, and Get the Rules.\n\nName it index.html and drop it '
+            + 'in a GitHub repo with Pages turned on.',
+      value:'index.html',
+      yes:'Export'
+    });
+    if(name === null) return;
+
+    const clone = document.documentElement.cloneNode(true);
+    const cb = clone.querySelector('body');
+
+    /* nothing is editable on the published copy */
+    clone.querySelectorAll('[contenteditable]').forEach(el=>el.removeAttribute('contenteditable'));
+    /* transient state */
+    clone.querySelectorAll('.page').forEach(el=>el.classList.remove('overflowing','picked'));
+    clone.querySelectorAll('.found').forEach(el=>el.classList.remove('found'));
+    clone.querySelectorAll('.flow').forEach(f=>f.removeAttribute('data-bound'));
+    clone.querySelectorAll('.modal').forEach(m=>m.classList.remove('open'));
+    clone.querySelectorAll('.eye-wrap').forEach(w=>w.classList.remove('open'));
+    /* everything hidden starts hidden */
+    clone.querySelectorAll('.book.open').forEach(b=>b.classList.remove('open'));
+    clone.querySelectorAll('.box.secret.revealed').forEach(b=>b.classList.remove('revealed'));
+    clone.querySelectorAll('.cipher.open').forEach(b=>b.classList.remove('open'));
+    /* published shell: reading chrome, no guides */
+    cb.className = 'reading web';
+    cb.dataset.descent = JSON.stringify(DESCENT);
+    const t = clone.querySelector('.rs-title');
+    if(t) t.textContent = title;
+    const dt = clone.querySelector('title');
+    if(dt) dt.textContent = title;
+
+    const file = (name.trim() || 'index.html').replace(/[^\w.-]/g,'') || 'index.html';
+    const blob = new Blob(['<!DOCTYPE html>\n' + clone.outerHTML], {type:'text/html'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = /\.html?$/i.test(file) ? file : file + '.html';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+    flash('Exported ' + a.download + ' — keep your editable copy separately');
+  },
+  subbooks(){ renderSubList(); subEl.classList.add('open'); },
+  descent(){ fieldsFromCfg(); updateMad(); descEl.classList.add('open'); }
+});
+
+fieldsFromCfg();
+
+/* ══════════════════════════════════════════════════════════════
+   PREVIOUS READERS — hands that got here before you
+   ══════════════════════════════════════════════════════════════ */
+const READER_NOTES = [
+  /* at = how deep the book must be before this hand shows up */
+  {at:.00, t:'check against the charge rules — p.?'},
+  {at:.00, t:'we ruled the other way on this'},
+  {at:.05, t:'ask Halloran before next game'},
+  {at:.08, t:'this is the one everyone gets wrong'},
+  {at:.12, t:'three times now. three.'},
+  {at:.18, t:'the numbers do not close'},
+  {at:.22, t:'who wrote the paragraph below? not me'},
+  {at:.28, t:'it was not here last week'},
+  {at:.34, t:'I have read this page eleven times'},
+  {at:.40, t:'the margin is wider than it was', deep:true},
+  {at:.46, t:'do not read the boxes aloud', deep:true},
+  {at:.52, t:'count the pages. count them again.', deep:true},
+  {at:.58, t:'something answers when you do', deep:true},
+  {at:.64, t:'I have stopped playing. I keep reading.', deep:true},
+  {at:.70, t:'the rules are not the point', deep:true, frantic:true},
+  {at:.76, t:'it is a door it is a door it is a door', deep:true, frantic:true},
+  {at:.82, t:'tell them the water was warm', deep:true, frantic:true},
+  {at:.88, t:'do not finish', deep:true, frantic:true},
+  {at:.93, t:'I finished', deep:true, frantic:true},
+  {at:.97, t:'thank you for reading this far', deep:true, frantic:true}
+];
+
+/* deterministic per-page randomness so notes never shuffle on reload */
+function seeded(n){
+  let a = n * 1831565813 + 0x6D2B79F5;
+  return function(){
+    a = Math.imul(a ^ (a >>> 15), a | 1);
+    a ^= a + Math.imul(a ^ (a >>> 7), a | 61);
+    return ((a ^ (a >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function pageDepthOf(pageNo){
+  if(!DESCENT.on) return -1;
+  return (pageNo - DESCENT.start) / Math.max(DESCENT.span, 0.001);
+}
+
+const usedNotes = new Set();
+
+function ensureMargins(){
+  pages().forEach((p, i)=>{
+    if(p.dataset.margDone) return;
+    p.dataset.margDone = '1';
+    const pageNo = i + 1;
+    const d = pageDepthOf(pageNo);
+    if(d < 0) return;
+    const rnd = seeded(pageNo * 7919);
+    const count = d < .25 ? (rnd() < .5 ? 1 : 0)
+                : d < .65 ? (rnd() < .45 ? 2 : 1)
+                : (rnd() < .5 ? 3 : 2);
+    /* hands whose moment has already arrived on this page */
+    const arrived = READER_NOTES.filter(n => n.at <= Math.min(d, 1));
+    if(!arrived.length) return;
+    const fresh = arrived.filter(n => !usedNotes.has(n.t));
+    const window_ = (fresh.length ? fresh : arrived).filter(n => n.at >= d - .34);
+    const src = (window_.length ? window_ : (fresh.length ? fresh : arrived)).slice();
+    for(let k = 0; k < count && src.length; k++){
+      const n = src.splice(Math.floor(rnd() * src.length), 1)[0];
+      usedNotes.add(n.t);
+      const side = rnd() < .62;
+      const el = document.createElement('div');
+      el.className = 'marg ' + (side ? 'side' : 'foot') +
+        (n.deep ? ' deep' : '') + (n.frantic ? ' frantic' : '');
+      el.dataset.at = n.at;
+      el.dataset.auto = '1';
+      el.setAttribute('contenteditable', document.body.classList.contains('reading') ? 'false' : 'true');
+      el.textContent = n.t;
+      const tilt = (rnd() * 4 - 2).toFixed(1);
+      if(side){
+        el.style.top = (8 + rnd() * 55).toFixed(0) + '%';
+        el.style.transform = `rotate(${tilt}deg)`;
+      } else {
+        el.style.left = (12 + rnd() * 45).toFixed(0) + '%';
+        el.style.transform = `rotate(${tilt}deg)`;
+      }
+      p.appendChild(el);
+    }
+  });
+  refreshMargins();
+}
+
+function resetMargins(){
+  usedNotes.clear();
+  pages().forEach(p=>{
+    p.querySelectorAll('.marg[data-auto]').forEach(n=>n.remove());
+    delete p.dataset.margDone;
+  });
+  ensureMargins();
+}
+
+function refreshMargins(){
+  pages().forEach((p, i)=>{
+    const d = pageDepthOf(i + 1);
+    p.querySelectorAll('.marg').forEach(el=>{
+      const at = parseFloat(el.dataset.at) || 0;
+      const o = Math.max(0, Math.min(1, (d - at) / 0.16));
+      el.style.opacity = (Math.max(o, 0.34) * 0.9).toFixed(3);
+    });
+  });
+}
+
+Object.assign(acts, {
+  readernote(){
+    const p = pages()[picked];
+    if(!p){ flash('No page selected'); return; }
+    const d = Math.max(0, pageDepthOf(picked + 1));
+    const el = document.createElement('div');
+    el.className = 'marg side' + (d > .5 ? ' deep' : '');
+    el.dataset.at = Math.max(0, d - .02).toFixed(2);
+    el.setAttribute('contenteditable', 'true');
+    el.textContent = 'a hand in the margin';
+    el.style.top = '30%';
+    el.style.transform = 'rotate(-1.5deg)';
+    p.appendChild(el);
+    refreshMargins();
+    el.focus();
+    const r = document.createRange();
+    r.selectNodeContents(el);
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    flash('Note added — type over it, or delete the text to clear it');
+  },
+  margins(){ document.body.classList.toggle('nomarg'); syncToggles(); }
+});
+
+/* once you type in a note it stops being one of the generated hands */
+doc.addEventListener('input', e=>{
+  const m = e.target.closest?.('.marg');
+  if(m) m.removeAttribute('data-auto');
+});
+
+/* an emptied note removes itself */
+doc.addEventListener('blur', e=>{
+  const m = e.target.closest?.('.marg');
+  if(m && !m.textContent.trim()) m.remove();
+}, true);
+
+/* ══════════════════════════════════════════════════════════════
+   HYDROPHONE — off until asked for, level follows the descent
+   ══════════════════════════════════════════════════════════════ */
+var AC = null, master = null, impTimer = null, whisTimer = null, audioOn = false;
+var droneGain = null, whisperGain = null, noiseBuf = null;
+
+function buildAudio(){
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if(!Ctx) return false;
+  AC = new Ctx();
+
+  master = AC.createGain();
+  master.gain.value = 0;
+  master.connect(AC.destination);
+
+  /* two near-unison sines beating against each other, plus an octave */
+  const bus = AC.createGain(); bus.gain.value = 0.5;
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 230;
+  [46, 46.7].forEach(f=>{
+    const o = AC.createOscillator(); o.type = 'sine'; o.frequency.value = f;
+    o.connect(bus); o.start();
+  });
+  const oct = AC.createOscillator(); oct.type = 'triangle'; oct.frequency.value = 92.4;
+  const octG = AC.createGain(); octG.gain.value = 0.10;
+  oct.connect(octG); octG.connect(bus); oct.start();
+  bus.connect(lp); lp.connect(master);
+
+  /* very slow swell */
+  const lfo = AC.createOscillator(); lfo.frequency.value = 0.06;
+  const lfoG = AC.createGain(); lfoG.gain.value = 0.2;
+  lfo.connect(lfoG); lfoG.connect(bus.gain); lfo.start();
+
+  droneGain = AC.createGain(); droneGain.gain.value = 1;
+  lp.disconnect(); lp.connect(droneGain); droneGain.connect(master);
+
+  /* brown-noise water bed */
+  const len = AC.sampleRate * 4;
+  const buf = AC.createBuffer(1, len, AC.sampleRate);
+  noiseBuf = buf;
+  const ch = buf.getChannelData(0);
+  let last = 0;
+  for(let i = 0; i < len; i++){
+    const white = Math.random() * 2 - 1;
+    last = (last + 0.02 * white) / 1.02;
+    ch[i] = last * 3.2;
+  }
+  const noise = AC.createBufferSource();
+  noise.buffer = buf; noise.loop = true;
+  const nf = AC.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = 360; nf.Q.value = 1.1;
+  const ng = AC.createGain(); ng.gain.value = 0.30;
+  noise.connect(nf); nf.connect(ng); ng.connect(droneGain); noise.start();
+
+  whisperGain = AC.createGain(); whisperGain.gain.value = 0;
+  whisperGain.connect(master);
+
+  const nl = AC.createOscillator(); nl.frequency.value = 0.041;
+  const nlg = AC.createGain(); nlg.gain.value = 170;
+  nl.connect(nlg); nlg.connect(nf.frequency); nl.start();
+
+  return true;
+}
+
+function impulse(){
+  if(!AC) return;
+  const t = AC.currentTime;
+  const o = AC.createOscillator(); o.type = 'sine';
+  o.frequency.setValueAtTime(104 + Math.random()*40, t);
+  o.frequency.exponentialRampToValueAtTime(30, t + 1.1);
+  const g = AC.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(0.55, t + 0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
+  o.connect(g); g.connect(master);
+  o.start(t); o.stop(t + 1.6);
+}
+
+/* ── whispered speech ──────────────────────────────────────────
+   Whispering has no vocal fold tone — it is turbulent noise shaped
+   by the resonances of the mouth. So: one continuous noise carrier,
+   three bandpass formants gliding between vowel targets, and a
+   separate high path for the consonants.
+   ───────────────────────────────────────────────────────────── */
+
+/* [F1, F2, F3] in Hz, adult female as the base; scaled per speaker */
+const VOWELS = {
+  a:  [860, 1600, 2850],
+  ah: [760, 1300, 2600],
+  e:  [590, 1960, 2650],
+  i:  [340, 2450, 3150],
+  o:  [520,  920, 2500],
+  u:  [380,  880, 2300],
+  uh: [600, 1420, 2500],
+  ae: [760, 1920, 2750],
+  er: [500, 1560, 1720]
+};
+const VKEYS = Object.keys(VOWELS);
+
+/* fricatives: [centre Hz, Q, level, length] */
+const FRIC = {
+  s:  [6200, 3.2, 0.50, 0.09],
+  sh: [3100, 2.4, 0.62, 0.11],
+  f:  [5200, 1.6, 0.34, 0.08],
+  th: [6800, 1.8, 0.30, 0.07],
+  h:  [1600, 0.9, 0.40, 0.06]
+};
+const FKEYS = Object.keys(FRIC);
+const PLOSIVES = ['t','k','p'];
+
+let whisperVerb = null;
+function buildVerb(){
+  if(whisperVerb || !AC) return whisperVerb;
+  const dur = 1.5, len = Math.floor(AC.sampleRate * dur);
+  const ir = AC.createBuffer(2, len, AC.sampleRate);
+  for(let c = 0; c < 2; c++){
+    const d = ir.getChannelData(c);
+    for(let i = 0; i < len; i++){
+      const t = i / len;
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 3.2) * (i < 200 ? i / 200 : 1);
+    }
+  }
+  whisperVerb = AC.createConvolver();
+  whisperVerb.buffer = ir;
+  return whisperVerb;
+}
+
+const rnd = (a, b) => a + Math.random() * (b - a);
+
+/* one speaker saying one thing */
+function speak(startAt, scale, pan, loudness){
+  const t0s = startAt;
+  const src = AC.createBufferSource();
+  src.buffer = noiseBuf; src.loop = true;
+
+  /* voiced path: the vowels */
+  const exc = AC.createGain(); exc.gain.setValueAtTime(0.0001, t0s);
+  const sum = AC.createGain(); sum.gain.value = 1;
+  const fGain = [1.0, 0.62, 0.34];
+  const fQ = [9, 11, 13];
+  const F = [];
+  for(let i = 0; i < 3; i++){
+    const bp = AC.createBiquadFilter();
+    bp.type = 'bandpass'; bp.Q.value = fQ[i];
+    const g = AC.createGain(); g.gain.value = fGain[i];
+    exc.connect(bp); bp.connect(g); g.connect(sum);
+    F.push(bp);
+  }
+
+  /* unvoiced path: the consonants */
+  const cex = AC.createGain(); cex.gain.setValueAtTime(0.0001, t0s);
+  const cbp = AC.createBiquadFilter(); cbp.type = 'bandpass'; cbp.Q.value = 2;
+  cex.connect(cbp); cbp.connect(sum);
+
+  src.connect(exc); src.connect(cex);
+
+  /* mouth tilt, then out */
+  const tilt = AC.createBiquadFilter();
+  tilt.type = 'lowpass'; tilt.frequency.value = 6200; tilt.Q.value = 0.6;
+  const hp = AC.createBiquadFilter();
+  hp.type = 'highpass'; hp.frequency.value = 280;
+  const out = AC.createGain(); out.gain.value = loudness;
+  sum.connect(tilt); tilt.connect(hp); hp.connect(out);
+
+  let tail = out;
+  if(AC.createStereoPanner){
+    const pn = AC.createStereoPanner();
+    pn.pan.value = Math.max(-1, Math.min(1, pan));
+    out.connect(pn); tail = pn;
+  }
+  tail.connect(whisperGain);
+  const verb = buildVerb();
+  if(verb){
+    const send = AC.createGain(); send.gain.value = 0.55;
+    tail.connect(send); send.connect(verb); verb.connect(whisperGain);
+  }
+
+  /* build a phrase: a few words, a few syllables each */
+  let t = t0s;
+  const words = 1 + Math.floor(Math.random() * 3);
+  for(let w = 0; w < words; w++){
+    const sylls = 1 + Math.floor(Math.random() * 3);
+    for(let n = 0; n < sylls; n++){
+      const last = (w === words - 1) && (n === sylls - 1);
+
+      /* onset consonant */
+      if(Math.random() < 0.62){
+        if(Math.random() < 0.3){
+          /* plosive: a closure, then a click of air */
+          t += rnd(0.035, 0.06);
+          const [c, q, lv, ln] = [rnd(1800, 3600), 1.2, 0.42, 0.022];
+          cbp.frequency.setValueAtTime(c, t);
+          cbp.Q.setValueAtTime(q, t);
+          cex.gain.setValueAtTime(0.0001, t);
+          cex.gain.linearRampToValueAtTime(lv, t + 0.006);
+          cex.gain.exponentialRampToValueAtTime(0.0001, t + ln);
+          t += ln;
+        } else {
+          const k = FKEYS[Math.floor(Math.random() * FKEYS.length)];
+          const [c, q, lv, ln] = FRIC[k];
+          cbp.frequency.setValueAtTime(c * rnd(0.9, 1.1) * (scale * 0.5 + 0.5), t);
+          cbp.Q.setValueAtTime(q, t);
+          cex.gain.setValueAtTime(0.0001, t);
+          cex.gain.linearRampToValueAtTime(lv, t + ln * 0.4);
+          cex.gain.exponentialRampToValueAtTime(0.0001, t + ln);
+          t += ln * 0.85;
+        }
+      }
+
+      /* the vowel */
+      const dur = last ? rnd(0.20, 0.34) : rnd(0.10, 0.20);
+      const v1 = VOWELS[VKEYS[Math.floor(Math.random() * VKEYS.length)]];
+      const v2 = VOWELS[VKEYS[Math.floor(Math.random() * VKEYS.length)]];
+      for(let i = 0; i < 3; i++){
+        const a = v1[i] * scale * rnd(0.97, 1.03);
+        const b = v2[i] * scale * rnd(0.97, 1.03);
+        F[i].frequency.setValueAtTime(a, t);
+        F[i].frequency.linearRampToValueAtTime(a * 0.55 + b * 0.45, t + dur * 0.7);
+      }
+      const peak = last ? 0.72 : rnd(0.5, 1.0);
+      exc.gain.setValueAtTime(0.0001, t);
+      exc.gain.linearRampToValueAtTime(peak, t + dur * 0.28);
+      exc.gain.setValueAtTime(peak * 0.85, t + dur * 0.62);
+      exc.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      t += dur;
+
+      /* coda */
+      if(!last && Math.random() < 0.22){
+        const k = FKEYS[Math.floor(Math.random() * FKEYS.length)];
+        const [c, q, lv, ln] = FRIC[k];
+        cbp.frequency.setValueAtTime(c, t);
+        cex.gain.setValueAtTime(0.0001, t);
+        cex.gain.linearRampToValueAtTime(lv * 0.7, t + ln * 0.4);
+        cex.gain.exponentialRampToValueAtTime(0.0001, t + ln);
+        t += ln;
+      }
+      t += rnd(0.01, 0.045);
+    }
+    t += rnd(0.16, 0.34);   /* between words */
+  }
+
+  src.start(t0s, Math.random() * 3);
+  src.stop(t + 0.4);
+  return t - t0s;
+}
+
+/* who is talking */
+function speakerScale(){
+  const mode = DESCENT.wvoice || 'mixed';
+  const child = mode === 'child' || (mode === 'mixed' && Math.random() < 0.62);
+  return child ? rnd(1.24, 1.40) : rnd(0.94, 1.06);
+}
+
+function utterance(){
+  if(!AC || !noiseBuf || !whisperGain) return;
+  const now = AC.currentTime + 0.05;
+  const side = rnd(-0.85, 0.85);
+  speak(now, speakerScale(), side, rnd(0.55, 0.9));
+  /* deeper in, they come in twos and threes */
+  const extra = MAD > 0.45 && Math.random() < (0.25 + MAD * 0.45) ? (Math.random() < 0.3 ? 2 : 1) : 0;
+  for(let i = 0; i < extra; i++){
+    speak(now + rnd(0.08, 0.5), speakerScale(), -side * rnd(0.5, 1.1), rnd(0.35, 0.7));
+  }
+}
+
+function scheduleWhisper(){
+  clearTimeout(whisTimer);
+  const gap = 46000 - MAD * 34000 + Math.random() * 22000;
+  whisTimer = setTimeout(()=>{
+    if(audioOn && MAD > 0.10 && !document.hidden) utterance();
+    scheduleWhisper();
+  }, gap);
+}
+
+function scheduleImpulse(){
+  clearTimeout(impTimer);
+  const gap = 30000 - MAD * 21000 + Math.random() * 15000;
+  impTimer = setTimeout(()=>{
+    if(audioOn && MAD > 0.22 && !document.hidden) impulse();
+    scheduleImpulse();
+  }, gap);
+}
+
+function audioLevel(){
+  if(!audioOn || !master || !AC) return;
+  const now = AC.currentTime;
+  const quiet = document.hidden;
+  master.gain.setTargetAtTime(quiet ? 0 : 1, now, 0.8);
+  const drone = ((DESCENT.vol ?? 55) / 100) * (0.06 + 0.34 * MAD);
+  const whisp = ((DESCENT.wvol ?? 45) / 100) * 0.30 * Math.max(0, (MAD - 0.08) / 0.92);
+  if(droneGain) droneGain.gain.setTargetAtTime(drone, now, 1.8);
+  if(whisperGain) whisperGain.gain.setTargetAtTime(whisp, now, 1.2);
+}
+
+function setSoundLabels(){
+  ['sndBtn','sndBtn2'].forEach(id=>{
+    const b = document.getElementById(id);
+    if(!b) return;
+    b.textContent = audioOn ? 'Drone on' : 'Drone off';
+    b.classList.toggle('on', audioOn);
+  });
+}
+
+async function toggleSound(){
+  if(!audioOn){
+    if(!AC && !buildAudio()){ flash('This browser will not make sound'); return; }
+    try{ await AC.resume(); }catch(_){}
+    audioOn = true;
+    scheduleImpulse();
+    scheduleWhisper();
+    flash('Hydrophone open — it deepens as you descend');
+  } else {
+    audioOn = false;
+    clearTimeout(impTimer);
+    clearTimeout(whisTimer);
+    if(master && AC) master.gain.setTargetAtTime(0, AC.currentTime, 0.4);
+  }
+  setSoundLabels();
+  audioLevel();
+}
+
+Object.assign(acts, { sound(){ toggleSound(); } });
+document.getElementById('sndBtn2')?.addEventListener('click', toggleSound);
+document.addEventListener('visibilitychange', audioLevel);
+
+/* ══════════════════════════════════════════════════════════════
+   BOOT
+   ══════════════════════════════════════════════════════════════ */
+loadDescent();
+booted = true;
+fieldsFromCfg();
+ensureMargins();
+setSoundLabels();
+syncToggles();
+updateMad();
+if(!document.body.classList.contains('calm')){ t0 = 0; startTents(); }
+
+/* deep links: yourbook.html#src-infantry */
+window.addEventListener('load', ()=>{
+  const id = location.hash.slice(1);
+  if(!id) return;
+  const el = document.getElementById(id);
+  if(el){
+    setTimeout(()=>{
+      el.scrollIntoView({block:'center'});
+      el.classList.add('found');
+      setTimeout(()=>el.classList.remove('found'), 2700);
+    }, 250);
+  }
+});
+</script>
+
+
+</body></html>
