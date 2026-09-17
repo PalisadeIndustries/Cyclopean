@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" style="--mad: 0.305;"><head>
+<html lang="en" style="--mad: 0.000;"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cyclopean</title>
@@ -214,7 +214,7 @@ p.cont{text-indent:1.1em}
 p.term{padding-left:1em;text-indent:-1em;margin-bottom:.42em}
 p.term b{color:var(--tide);font-weight:600}
 
-.flow ul,.flow ol{margin:0 0 .55em;padding-left:1.15em;text-align:left}
+.flow ul,.flow ol{margin:0 0 .55em;text-align:left}
 .flow li{margin-bottom:.16em}
 .flow ul{list-style:none;padding-left:1em}
 .flow ul > li{position:relative}
@@ -222,8 +222,19 @@ p.term b{color:var(--tide);font-weight:600}
   content:'';position:absolute;left:-.82em;top:.45em;
   width:.05in;height:.05in;background:var(--shoal);transform:rotate(45deg);
 }
-.flow ol{list-style:decimal}
-.flow ol li::marker{font-family:'IBM Plex Mono',monospace;font-size:.85em;color:var(--tide)}
+/* numbers are drawn by a counter and right-aligned in their own gutter,
+   so 1 and 12 line up and nothing overhangs the column */
+.flow ol{list-style:none;padding-left:1.85em;counter-reset:cy}
+.flow ol > li{position:relative;counter-increment:cy}
+.flow ol > li::before{
+  content:counter(cy) ".";
+  position:absolute;left:-1.85em;top:0;
+  width:1.5em;text-align:right;
+  font-family:'IBM Plex Mono',monospace;font-size:.86em;
+  color:var(--tide);font-variant-numeric:tabular-nums;
+}
+.flow ol ol{margin-top:.16em}
+.flow ol ol > li::before{content:counter(cy,lower-alpha) "."}
 
 .box{
   border:1px solid var(--tide);
@@ -539,6 +550,28 @@ body.guides .cipher{box-shadow:0 1px 0 rgba(122,90,168,.5)}
 .box.secret:hover p,.box.secret.revealed p{color:inherit}
 .box.secret:hover p::before,.box.secret.revealed p::before{opacity:0}
 
+/* ══════════ vector plates ══════════ */
+.vplate{break-inside:avoid;margin:6px 0 11px;text-align:left}
+.vplate .vsvg{
+  display:block;width:100%;
+  border:1px solid var(--hair);background:rgba(20,86,107,.04);
+  cursor:pointer;overflow:hidden;
+}
+.vplate .vsvg > svg{width:100%;height:100%;display:block}
+.vplate .vsvg:hover{border-color:var(--shoal)}
+.vplate .cap{
+  display:block;font-family:'Zilla Slab',sans-serif;font-size:8pt;
+  color:var(--ink-soft);padding-top:3px;line-height:1.3;
+}
+.vplate.empty .vsvg{
+  aspect-ratio:3/2;display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace;font-size:8.5pt;color:var(--ink-soft);
+}
+body.reading .vplate .vsvg,body.web .vplate .vsvg{cursor:default}
+body.reading .vplate .vsvg:hover,body.web .vplate .vsvg:hover{border-color:var(--hair)}
+.page.art .artframe > svg{width:100%;height:100%;display:block}
+.page.art.hasvec .artframe{background:var(--paper)}
+
 /* ══════════ art plates with images ══════════ */
 .plate{cursor:pointer;transition:border-color .12s}
 .plate:hover{border-color:var(--shoal)}
@@ -774,6 +807,203 @@ body.nomarg .marg{display:none}
   text-align:left;margin:-4px 0 9px;
 }
 
+
+/* ══════════════════════════════════════════════════════════════
+   NARRATIVE — spans both columns, but insets to keep the line
+   length readable. Book measure, not newspaper measure.
+   ══════════════════════════════════════════════════════════════ */
+.narrative{
+  column-span:all;
+  margin:13px 0 15px;
+  padding:0 .58in;
+  font-size:11pt;line-height:1.63;
+  text-align:justify;hyphens:auto;-webkit-hyphens:auto;
+}
+.narrative p{margin:0 0 .12em;text-indent:1.3em;orphans:2;widows:2}
+.narrative p:first-of-type{text-indent:0}
+.narrative p + .scene + p{text-indent:0}
+.narrative.drop p:first-of-type::first-letter{
+  font-family:'Zilla Slab',sans-serif;font-weight:700;
+  float:left;font-size:3.2em;line-height:.82;
+  padding:.04em .08em 0 0;color:var(--tide);
+}
+.narrative .voice{
+  display:block;text-align:right;text-indent:0;
+  font-size:9pt;color:var(--ink-soft);
+  font-family:'Zilla Slab',sans-serif;margin-top:.5em;
+}
+body.guides .narrative{
+  box-shadow:inset 3px 0 0 -1px rgba(46,139,160,.35),inset -3px 0 0 -1px rgba(46,139,160,.35);
+}
+.scene{
+  text-align:center;text-indent:0;
+  margin:.7em 0;color:var(--shoal);
+  font-size:11pt;letter-spacing:.5em;
+}
+.scene::before{content:'\2042'}
+
+/* a whole page given over to prose */
+.page.prose .flow{
+  column-count:1;column-rule:none;
+  padding:0 .5in;
+  font-size:11pt;line-height:1.63;
+}
+.page.prose .flow > h2.sec,
+.page.prose .flow > h3.sub,
+.page.prose .flow > h4.run{padding-left:0}
+.page.prose .narrative{padding:0;column-span:none}
+
+/* ══════════════════════════════════════════════════════════════
+   FULL-PAGE ART
+   ══════════════════════════════════════════════════════════════ */
+.page.art{background:var(--abyss)}
+.page.art::before{display:none}
+.page.art .artframe{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--paper-deep);cursor:pointer;overflow:hidden;
+}
+.page.art.framed .artframe{inset:.5in;border:1px solid var(--hair)}
+.page.art .artframe img{width:100%;height:100%;object-fit:cover;display:block}
+.page.art.framed .artframe img{object-fit:contain}
+.page.art .artframe .ph{
+  font-family:'IBM Plex Mono',monospace;font-size:9pt;color:var(--ink-soft);
+  text-align:center;padding:20px;pointer-events:none;
+}
+.page.art .artcap{
+  position:absolute;left:0;right:0;bottom:0;
+  padding:34px .6in .34in;
+  font-family:'Zilla Slab',sans-serif;font-size:9.5pt;
+  color:#e9f0f2;text-shadow:0 1px 6px rgba(0,0,0,.9);
+  background:linear-gradient(180deg,transparent,rgba(4,12,16,.78));
+}
+.page.art.framed .artcap{
+  background:none;color:var(--ink-soft);text-shadow:none;
+  padding:0 .5in .22in;bottom:.14in;
+}
+.page.art .artcap:empty::before{content:'Caption';opacity:.55}
+.page.art.nocap .artcap{display:none}
+.page.art .artctl{
+  position:absolute;top:8px;right:8px;z-index:6;display:none;gap:5px;
+}
+body.guides .page.art .artctl{display:flex}
+body.reading .page.art .artctl,body.web .page.art .artctl{display:none !important}
+.page.art .artctl button{
+  font-family:'Zilla Slab',sans-serif;font-size:11px;
+  background:rgba(10,22,27,.86);color:#b6ccd2;border:1px solid #2e8ba0;
+  padding:3px 8px;border-radius:2px;cursor:pointer;
+}
+.page.art .artctl button:hover{background:#14343d;color:#e9f6f8}
+
+/* ══════════════════════════════════════════════════════════════
+   CONTENTS / INDEX PANEL
+   ══════════════════════════════════════════════════════════════ */
+.nav{
+  position:fixed;top:0;left:0;bottom:0;width:312px;z-index:72;
+  background:#0a161b;border-right:1px solid #2e8ba0;
+  transform:translateX(-100%);transition:transform .22s ease;
+  display:flex;flex-direction:column;font-family:'Zilla Slab',sans-serif;
+}
+.nav.open{transform:none}
+.nav-scrim{
+  position:fixed;inset:0;z-index:71;background:rgba(3,10,14,.55);
+  opacity:0;pointer-events:none;transition:opacity .22s ease;
+}
+.nav-scrim.open{opacity:1;pointer-events:auto}
+.nav-hd{display:flex;gap:4px;padding:9px 10px;border-bottom:1px solid #1d3d47;align-items:center}
+.nav-hd .nt{
+  font-family:'Zilla Slab',sans-serif;font-size:12px;
+  background:#182a32;color:#b6ccd2;border:1px solid #2a4049;
+  padding:5px 11px;border-radius:2px;cursor:pointer;
+}
+.nav-hd .nt.on{background:#2e8ba0;border-color:#2e8ba0;color:#04161d;font-weight:600}
+.nav-hd .nav-x{
+  margin-left:auto;background:none;border:1px solid #2a4049;color:#8ba2a8;
+  width:26px;height:26px;font-size:15px;line-height:1;cursor:pointer;border-radius:2px;
+}
+.nav-bd{overflow:auto;padding:6px 0 20px}
+.nav-bd .ni{
+  display:flex;gap:8px;align-items:baseline;width:100%;text-align:left;
+  background:none;border:none;cursor:pointer;
+  padding:6px 12px;color:#b6ccd2;font-family:'Zilla Slab',sans-serif;font-size:12.5px;
+  border-bottom:1px solid #101f26;
+}
+.nav-bd .ni:hover{background:#14343d;color:#e9f6f8}
+.nav-bd .ni .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-bd .ni .pg{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#54707a}
+.nav-bd .ni.l0{color:#d6c7f2;font-weight:700;background:#140f26}
+.nav-bd .ni.l1{font-weight:600}
+.nav-bd .ni.l2{padding-left:26px;font-size:12px;color:#8ba2a8}
+.nav-bd .letter{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;
+  color:#2e8ba0;padding:10px 12px 3px;border-bottom:1px solid #142a32;
+}
+.nav-empty{padding:14px 12px;color:#54707a;font-size:12px}
+
+/* ══════════════════════════════════════════════════════════════
+   CROSS-REFERENCES
+   ══════════════════════════════════════════════════════════════ */
+a.xref{
+  color:inherit;text-decoration:none;
+  border-bottom:1px dotted var(--shoal);
+  cursor:pointer;
+}
+a.xref:hover{color:var(--tide);border-bottom-style:solid}
+
+/* ══════════════════════════════════════════════════════════════
+   SMALL SCREENS — the page frame gives way to a single stream
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width:760px){
+  body{padding:0 0 40px}
+  body.reading,body.web{padding-top:0}
+  #doc{gap:0;align-items:stretch}
+  .page.art{height:auto;aspect-ratio:8.5/11}
+  .page.art .artframe{position:absolute}
+  .page{
+    width:100%;height:auto;min-height:0;
+    box-shadow:none;border-bottom:1px solid var(--hair);
+    overflow:visible;
+  }
+  .page::before{display:none}
+  .sheet{position:static;padding:18px 16px 22px;display:block}
+  .page.recto .sheet,.page.verso .sheet{left:auto;right:auto}
+  .flow{
+    column-count:1;column-rule:none;
+    font-size:16px;line-height:1.62;
+    text-align:left;hyphens:none;-webkit-hyphens:none;
+    overflow:visible;height:auto;
+  }
+  .runner{flex-wrap:wrap;gap:6px}
+  .runner .keel{display:none}
+  .runner .r-chapter{font-size:13px}
+  .runner .r-part{font-size:11px}
+  .folio{font-size:11px}
+  h2.sec{font-size:22px}
+  h3.sub{font-size:16px}
+  p.lede::first-letter{font-size:2.6em}
+  .kelp{display:none}
+  .marg{
+    position:static !important;
+    writing-mode:horizontal-tb;max-height:none;
+    transform:none !important;opacity:.8 !important;
+    border-left:2px solid var(--occult-dim);padding-left:9px;
+    margin:12px 0;font-size:15px;
+  }
+  .page.recto .marg.side,.page.verso .marg.side{left:auto;right:auto}
+  .book-head{width:100%}
+  .readstrip{flex-wrap:wrap;gap:6px 8px;position:sticky}
+  .bar{position:sticky}
+  .eye-wrap{right:10px;bottom:10px}
+  .eye-panel{width:min(86vw,330px)}
+  .nav{width:min(86vw,312px)}
+  .modal{padding:14px}
+  .fields{grid-template-columns:1fr}
+  table.tbl{font-size:13px}
+  .box{font-size:15px}
+  .narrative{padding:0;font-size:16px;text-align:left;hyphens:none}
+  .page.prose .flow{padding:0}
+}
+
 @page{size:letter portrait;margin:0}
 @media print{
   body{background:#fff;padding:0;
@@ -783,7 +1013,10 @@ body.nomarg .marg{display:none}
   .bar,.hint,.overflag,#tent,.eye-wrap,.readstrip,.modal{display:none !important}
   .is-source{box-shadow:none !important}
   .box::after{animation:none !important;opacity:.4}
-  .plate{cursor:default}
+  .plate,.vplate .vsvg{cursor:default}
+  .nav,.nav-scrim{display:none !important}
+  .page.art .artctl{display:none !important}
+  a.xref{border-bottom:none;color:inherit}
   .kelp{opacity:.17 !important}
   .marg{opacity:.5 !important;pointer-events:none}
   .book:not(.open){display:none !important}
@@ -799,15 +1032,16 @@ body.nomarg .marg{display:none}
 }
 </style>
 </head>
-<body class="reading web" style="background-color: rgb(21, 27, 30);" data-descent="{&quot;on&quot;:true,&quot;start&quot;:6,&quot;span&quot;:10,&quot;tmin&quot;:6,&quot;tmax&quot;:30,&quot;runes&quot;:20,&quot;dim&quot;:true,&quot;vol&quot;:54,&quot;wvol&quot;:100,&quot;wvoice&quot;:&quot;mixed&quot;}">
+<body class="reading web" style="background-color: rgb(26, 34, 38);" data-descent="{&quot;on&quot;:true,&quot;start&quot;:6,&quot;span&quot;:10,&quot;tmin&quot;:6,&quot;tmax&quot;:30,&quot;runes&quot;:70,&quot;dim&quot;:true,&quot;vol&quot;:55,&quot;wvol&quot;:45,&quot;wvoice&quot;:&quot;mixed&quot;,&quot;drone&quot;:true}">
 
-<canvas id="tent" aria-hidden="true" width="1453" height="919" style="width: 1321px; height: 836px;"></canvas>
+<canvas id="tent" aria-hidden="true" width="1920" height="953" style="width: 1920px; height: 953px;"></canvas>
 
 <div class="readstrip" id="readstrip">
+  <button data-act="contents">Contents</button>
   <span class="rs-title" style="margin-right:auto">Cyclopean</span>
-  <button id="sndBtn2" class="">Drone off</button>
+  <button id="sndBtn2" class="on">Drone on</button>
   <button data-act="tent" class="on">Motion</button>
-  <button data-act="dark" class="">Abyssal</button>
+  <button data-act="dark">Abyssal</button>
   <button class="rs-get" data-act="getrules">Get the Rules</button>
   <button class="rs-edit" data-act="read">Edit pages</button>
 </div>
@@ -823,6 +1057,7 @@ body.nomarg .marg{display:none}
   <span class="sep"></span>
   <button data-ins="ul">Bullets</button>
   <button data-ins="ol">Steps</button>
+  <button data-act="sortlist">Sort A–Z</button>
   <button data-ins="tbl">Table</button>
   <button data-ins="profile">Profile strip</button>
   <span class="sep"></span>
@@ -831,7 +1066,13 @@ body.nomarg .marg{display:none}
   <button data-ins="alarm">Warning box</button>
   <button data-ins="secret">Sealed box</button>
   <button data-ins="pull">Pull quote</button>
+  <button data-ins="narr">Narrative</button>
+  <button data-ins="scene">Scene break</button>
   <button data-ins="plate">Art plate</button>
+  <button data-act="vplate">Vector plate</button>
+  <button data-act="artpage">Art page</button>
+  <button data-act="prose">Prose page</button>
+  <button data-act="dropcap">Drop cap</button>
   <button data-ins="wave">Divider</button>
 
   <span class="brk"></span>
@@ -854,11 +1095,15 @@ body.nomarg .marg{display:none}
   <button data-act="unmarksrc">Unmark</button>
   <span class="sep"></span>
   <span style="color:#5b7079;font-size:12px">Page</span>
-  <select id="pagepick" title="Selected page"><option value="0">01 · Chapter One</option><option value="1">02 · Chapter One</option><option value="2">03 · Chapter One</option><option value="3">04 · Chapter One</option><option value="4">05 · Chapter One</option><option value="5">06 · Chapter One</option><option value="6">07 · Chapter One</option><option value="7">08 · Chapter 2</option><option value="8">09 · Chapter 2</option><option value="9">10 · Chapter 2</option></select>
+  <select id="pagepick" title="Selected page"><option value="0">01 · Chapter One</option><option value="1">02 · Chapter One</option><option value="2">03 · Chapter One</option><option value="3">04 · Chapter One</option><option value="4">05 · Chapter One</option><option value="5">06 · Chapter One</option><option value="6">07 · Chapter One</option><option value="7">08 · Chapter 2</option><option value="8">09 · Chapter 2</option><option value="9">10 · Chapter 2</option><option value="10">11 · Chapter 2</option><option value="11">12 · Chapter 2</option><option value="12">13 · Chapter 2</option><option value="13">14 · Chapter 2</option><option value="14">15 · Chapter 2</option></select>
   <button data-act="newpage">Add page after</button>
   <button class="danger" data-act="delpage">Delete this page</button>
   <span class="sep"></span>
   <button data-act="import">Import…</button>
+  <button data-act="contents">Contents</button>
+  <button data-act="pageup">Move ↑</button>
+  <button data-act="pagedown">Move ↓</button>
+  <button data-act="reflow">Reflow</button>
   <button data-act="descent">Descent…</button>
   <button data-act="subbooks">Sub-books…</button>
   <button data-act="readernote">Reader’s note</button>
@@ -866,11 +1111,12 @@ body.nomarg .marg{display:none}
   <button data-act="guides" class="on">Guides</button>
   <button data-act="kelp" class="on">Marginalia</button>
   <button data-act="margins" class="on">Reader notes</button>
-  <button data-act="sound" id="sndBtn" class="">Drone off</button>
+  <button data-act="sound" id="sndBtn" class="on">Drone on</button>
   <button data-act="tent" class="on">Motion</button>
   <button data-act="read">Reader mode</button>
-  <button data-act="dark" class="">Abyssal</button>
+  <button data-act="dark">Abyssal</button>
   <button data-act="save">Save copy</button>
+  <button data-act="xref">Link rules</button>
   <button data-act="exportweb">Export site…</button>
   <button data-act="print">Print / PDF</button>
 </div>
@@ -911,7 +1157,7 @@ body.nomarg .marg{display:none}
       <span class="r-part">Cyclopean</span>
     </div>
     <div class="flow">
-      <h2 class="sec">Game Overview</h2><div>The veil has been pulled back, the ignorance of mankind blasted away in an instant. In the aftermath of the great revelations brought on by waking gods, mankind has adapted. Now the cultic armies of mankind clash in fierce territorial battles to carve out empires from what is left of the world. Infantry advance under the watch of priests and sorcerers, tanks provide fire support for eldritch abominations, and technoccultists combine technology and the arcane into strange and twisted technologies. Mankind fights alongside monsters and harnesses magic to curry favor from their new masters in the age Cyclopean.</div><div><br></div><div>This is not a broken world. Mankind has been given a new vision for the future. As cults carve out territory, stability is valued, and some semblance of normality returns. The new strange, the new normal, has overcome the world, and with it a new type of war.</div><div><br></div><div>Cyclopean is a fast-paced 15mm tabletop miniature wargame for two or more players set in a new epoch. Players take control of combined arms forces of soldiers, vehicles, aircraft, eldritch monstrosities, towering abominations, and conniving sorcerers.&nbsp;</div><div><br></div><div>As their general, you harness and extract energy from your units to drive them onward. Men and beasts are strong, but this strange time has proven that they are stronger together. A mighty mech is nothing without the soldiers alongside it. A force must balance its composition so that energy flows to empower the right tool at the right time.&nbsp;</div><blockquote class="pull">Be hardy. You fight monsters: slay many.<br><cite>— Brigadier General Chad Vance † Battle of Ellis Island</cite></blockquote><h3 class="sub"><br></h3><div><br></div><div><br></div><div><br></div><h2 class="sec">Summary of Play</h2><div>LORIZED SUMMARY OF PLAY. BOO MONSTERS AND SOLDIERS. Abrams tanks with cult sigils, giant monsters rescuing tank forces, whatevers. EXPLOSIONS</div><div></div>
+      <h2 class="sec">Game Overview</h2><div>The veil has been pulled back, the ignorance of mankind blasted away in an instant. In the aftermath of the great revelations brought on by waking gods, mankind has adapted. Now the cultic armies of mankind clash in fierce territorial battles to carve out empires from what is left of the world. <a class="xref" href="#src-infantry" title="Infantry">Infantry</a> advance under the watch of priests and sorcerers, tanks provide fire support for eldritch abominations, and technoccultists combine technology and the arcane into strange and twisted technologies. Mankind fights alongside monsters and harnesses magic to curry favor from their new masters in the age Cyclopean.</div><div><br></div><div>This is not a broken world. Mankind has been given a new vision for the future. As cults carve out territory, stability is valued, and some semblance of normality returns. The new strange, the new normal, has overcome the world, and with it a new type of war.</div><div><br></div><div>Cyclopean is a fast-paced 15mm tabletop miniature wargame for two or more players set in a new epoch. Players take control of combined arms forces of soldiers, <a class="xref" href="#src-vehicles" title="Vehicles">vehicles</a>, aircraft, eldritch monstrosities, towering abominations, and conniving sorcerers.&nbsp;</div><div><br></div><div>As their general, you harness and extract energy from your units to drive them onward. Men and beasts are strong, but this strange time has proven that they are stronger together. A mighty mech is nothing without the soldiers alongside it. A force must balance its composition so that energy flows to empower the right tool at the right time.&nbsp;</div><blockquote class="pull">Be hardy. You fight monsters: slay many.<br><cite>— Brigadier General Chad Vance † Battle of Ellis Island</cite></blockquote><h3 class="sub"><br></h3><div><br></div><div><br></div><div><br></div><h2 class="sec">Summary of Play</h2><div><br></div><div></div>
     </div>
     <div class="folio">
       <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">01</span>
@@ -951,7 +1197,7 @@ body.nomarg .marg{display:none}
       <span class="r-part">Cyclopean</span>
     </div>
     <div class="flow">
-      <h2 class="sec">General Guidelines</h2><div>Cyclopean is intended for rules to be written in plain English but some rules have more technical turns. There are some general guidelines across all rules that can be followed. If these rules are broken by a specific ability they will be noted as exceptions on that ability.</div><div><br></div><div>The standard working element for Cyclopean is the unit. A unit is made of up of a number of individual models, interchangeably referred to as stands. Stands is usually a reference to infantry while models applies to larger creatures and vehicles. A unit's card will specify how many models or stands a unit is composed of.</div><div><br></div><div>All models and units in your army are friendlies.</div><div><br></div><div>All models controlled by your opponent are enemies.</div><div><br></div><div>Abilities apply to the specific unit activating them and last until the end of the turn. If they affect another unit or have a different duration this will be specified.</div><div><br></div><div>Unless specified, abilities are assumed to only be able to target friendlies.</div><div><br></div><div>Some abilities will specify a type of unit affected. It will say "All X units" or "Select an X unit within range." Any unit that meets that criteria may be selected. A unit may even target itself with an ability if it is otherwise eligible and is always considered within range of itself.</div><div><br></div><div>Abilities with the same name are not cumulative.</div><div><br></div><div>Abilities with different names are cumulative.</div><div><br></div><div><br></div><div><br></div><div>Attachments count as the unit they belong to for all rules affecting them and vice-versa. If an attachment's ability specifies 'this unit' then it applies to the parent unit as well and any bonuses from the parent unit apply to the attachment.</div><div><br></div><div>Dice pools may be modified. They will be specified if they modify the pool as a whole or modify based on the number of stands. This is the number of stands still active in the unit.&nbsp;</div><div><br></div><div data-src-name="Transform" class="is-source" id="src-transform">Some units <b>Transform</b>. In this case, each eligible stand is replaced by the appropriate stand of the unit it transformed into. Try to maintain as accurate of a location as possible when swapping miniatures.</div><div><br></div><div data-src-name="Summoned" data-src-alt="Summon" class="is-source" id="src-summoned">Some units may be <b>Summoned</b>. A summoned unit is placed within 6" of the unit creating it, or <b>summoner</b>. This unit is considered to have been activated already and does not contribute any Major or Minor energy.</div><div class="box alarm"><span class="tab">Summoned Attachments</span><p>If the unit being Summoned is an attachment it may be added to an appropriate unit if it is within range. This unit does not contribute any energy this turn but may perform actions with its parent unit.&nbsp;</p></div><h2 class="sec is-source" data-src-name="Dice" id="src-dice">Dice</h2><div>Cyclopean is played with three different dice: the six-sided dice called d6, eight-sided dice called d8, and ten-sided dice called d10. These are used to determine hits and for resolving certain abilities.</div><div><br></div><div>Some abilities use a D3. To resolve this roll a D6 and divide the result by 2, rounding up.&nbsp;</div><div><br></div><div data-src-name="Dice Pool" class="is-source" id="src-dice-pool">Whenever an attack is declared and a <b>Dice Pool</b>&nbsp;is formed, the <b>Dice Pool</b>&nbsp;is the dice from the same weapon added together and rolled as one. Successes from one dice pool may be combined to meet Wound Thresholds but the results of two separate dice pools may not be combined.&nbsp;</div>
+      <h2 class="sec">General Guidelines</h2><div>Cyclopean is intended for rules to be written in plain English but some rules have more technical turns. There are some general guidelines across all rules that can be followed. If these rules are broken by a specific ability they will be noted as exceptions on that ability.</div><div><br></div><div>The standard working element for Cyclopean is the unit. A unit is made of up of a number of individual models, interchangeably referred to as stands. Stands is usually a reference to <a class="xref" href="#src-infantry" title="Infantry">infantry</a> while models applies to larger creatures and <a class="xref" href="#src-vehicles" title="Vehicles">vehicles</a>. A unit's card will specify how many models or stands a unit is composed of.</div><div><br></div><div>All models and units in your army are friendlies.</div><div><br></div><div>All models controlled by your opponent are enemies.</div><div><br></div><div>Abilities apply to the specific unit activating them and last until the end of the turn. If they affect another unit or have a different duration this will be specified.</div><div><br></div><div>Unless specified, abilities are assumed to only be able to target friendlies.</div><div><br></div><div>Some abilities will specify a type of unit affected. It will say "All X units" or "Select an X unit within range." Any unit that meets that criteria may be selected. A unit may even target itself with an ability if it is otherwise eligible and is always considered within range of itself.</div><div><br></div><div>Abilities with the same name are not cumulative.</div><div><br></div><div>Abilities with different names are cumulative.</div><div><br></div><div><br></div><div><br></div><div>Attachments count as the unit they belong to for all rules affecting them and vice-versa. If an attachment's ability specifies 'this unit' then it applies to the parent unit as well and any bonuses from the parent unit apply to the attachment.</div><div><br></div><div><a class="xref" href="#src-dice" title="Dice">Dice</a> pools may be modified. They will be specified if they modify the pool as a whole or modify based on the number of stands. This is the number of stands still active in the unit.&nbsp;</div><div><br></div><div data-src-name="Transform" class="is-source" id="src-transform">Some units <b>Transform</b>. In this case, each eligible stand is replaced by the appropriate stand of the unit it transformed into. Try to maintain as accurate of a location as possible when swapping miniatures.</div><div><br></div><div data-src-name="Summoned" data-src-alt="Summon" class="is-source" id="src-summoned">Some units may be <b>Summoned</b>. A summoned unit is placed within 6" of the unit creating it, or <b>summoner</b>. This unit is considered to have been activated already and does not contribute any Major or Minor energy.</div><div class="box alarm"><span class="tab">Summoned Attachments</span><p>If the unit being <a class="xref" href="#src-summoned" title="Summoned">Summoned</a> is an attachment it may be added to an appropriate unit if it is within range. This unit does not contribute any energy this turn but may perform actions with its parent unit.&nbsp;</p></div><h2 class="sec is-source" data-src-name="Dice" id="src-dice">Dice</h2><div>Cyclopean is played with three different dice: the six-sided dice called d6, eight-sided dice called d8, and ten-sided dice called d10. These are used to determine hits and for resolving certain abilities.</div><div><br></div><div>Some abilities use a D3. To resolve this roll a D6 and divide the result by 2, rounding up.&nbsp;</div><div><br></div><div data-src-name="Dice Pool" class="is-source" id="src-dice-pool">Whenever an attack is declared and a <b>Dice Pool</b>&nbsp;is formed, the <b>Dice Pool</b>&nbsp;is the dice from the same weapon added together and rolled as one. Successes from one dice pool may be combined to meet Wound Thresholds but the results of two separate dice pools may not be combined.&nbsp;</div>
     </div>
     <div class="folio">
       <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">02</span>
@@ -990,7 +1236,7 @@ body.nomarg .marg{display:none}
       <span class="keel" aria-hidden="true"></span>
       <span class="r-part">Cyclopean</span>
     </div>
-    <div class="flow"><h2 class="sec">Common Rules</h2><div><br></div><ul data-src-name="Anti-Tank" class="is-source" id="src-anti-tank" data-src-alt="Anti-Infantry"><li><b>Impact X:</b> This reduces the target's wound threshold when resolving attacks.</li><li><b>Anti-(Tank/Infantry) X:</b> Each successful hit counts as X successes. One hit, however, cannot cause multiple wounds and all excess is lost.</li></ul><div class="box reef"><span class="tab">Rules In Play</span><p>A unit of marksmen shoots at a unit of Tidewatch Pacifiers with their Anti-Infantry 3 weapons. They score 3 successful hits.&nbsp;</p><p><br></p><p>When comparing to the Pacifier's wound threshold of 4 the first hit counts as 3 and does not meet this wound threshold. The next hit is considered and added to the first to total 6. This exceeds the pacifier's wound threshold so it suffers and wound and all excess is discarded.</p><p><br></p><p>The remaining hit is then compared against the next wound's Threshold of 4. Counting as 3 successes: it fails to meet the threshold and does not wound.</p></div><p class="cont"><br></p><ul data-src-name="Armor" class="is-source" id="src-armor"><li><b>Move and Shoot: </b>This unit may perform a Move action and Shoot action in the same activation.</li><li><b>Anti-Air X: </b>X is added to the hit rolls of all attacks resolved against an Aircraft</li><li><b>Attachment (X): </b>This unit may be attached to the unit in parenthesis. An Attachment unit may not perform actions on its activation and may only activate an ability.&nbsp;</li><li><b>Armor X: </b>A vehicle with this rule does not have to reduce its movement or destroy a weapon until it has lost more than X wounds.</li><li><b>Cumbersome X</b>: When resolving an attack with this weapon, subtract this number from the dice roll when making a Shoot action or add it when making a Fight action</li></ul><p class="cont"><br></p><h2 class="sec">Unit Types</h2><div>Units in Cyclopean fall into two major categories</div><div><br></div><ul><li><b>Infantry</b></li><li><b>Vehicle</b></li></ul><div style="text-align: left;" class="is-source" data-src-name="Infantry" id="src-infantry"><span style="color: rgb(20, 86, 107); font-family: &quot;Zilla Slab&quot;, sans-serif; font-size: 12pt; font-weight: 600;">Infantry</span></div><div style="text-align: left;">Infantry units typically make up the bulk of any force and have the following rules associated with them:</div><ul><li><b>Keep Low: </b>Any intervening piece of scatter terrain provides +1 to their wound Threshold against Ranged attacks</li><li><b>Effective Fire:</b>&nbsp;Infantry may not perform a <b>Move</b> and a <b>Shoot</b> action in the same activation unless they have Move and Shoot.</li><li><b>Boots on the Ground:&nbsp;</b>Only Infantry may hold objectives.</li><li><b>Break and Run:</b> If an infantry unit is <b>Engaged</b>, it may perform the&nbsp;<b>Fall Back Double Action</b>&nbsp;on its turn to break engagement. It is no longer engaged and must make a full <b>Move</b> away from the engaging enemy units. Afterwards, roll a D6 and move it that many inches further.</li></ul><h3 class="sub is-source" data-src-name="Vehicles" id="src-vehicles">Vehicles</h3><div style="text-align: left;">Vehicles operate differently from infantry in a number of ways.</div><ul><li><b>Hullbreak:</b> Each time a vehicle loses a wound it must choose to destroy a weapon or halve its movement.&nbsp;</li></ul><div class="box alarm"><span class="tab">No Man Left Behind</span><p>A unit's movement is always set to that of its slowest member. So if a vehicle has reduced movement, all other vehicles in its unit also have reduced movement as long as that model survives.</p></div><ul><li><b>Mortal Disregard:</b> Vehicle units treat <b>Fall Back</b>&nbsp;as a single action.</li><li><b>Stabilizers: </b>A vehicle may Move and Shoot in the same activation.</li></ul><div style="text-align: left;"><br></div></div>
+    <div class="flow"><h2 class="sec">Common Rules</h2><div><br></div><ul data-src-name="Anti-Tank" class="is-source" id="src-anti-tank" data-src-alt="Anti-Infantry"><li><b>Impact X:</b> This reduces the target's wound threshold when resolving attacks.</li><li><b>Anti-(Tank/<a class="xref" href="#src-infantry" title="Infantry">Infantry</a>) X:</b> Each successful hit counts as X successes. One hit, however, cannot cause multiple wounds and all excess is lost.</li></ul><div class="box reef"><span class="tab">Rules In Play</span><p>A unit of marksmen shoots at a unit of Tidewatch Pacifiers with their <a class="xref" href="#src-anti-tank" title="Anti-Infantry">Anti-Infantry</a> 3 weapons. They score 3 successful hits.&nbsp;</p><p><br></p><p>When comparing to the Pacifier's wound threshold of 4 the first hit counts as 3 and does not meet this wound threshold. The next hit is considered and added to the first to total 6. This exceeds the pacifier's wound threshold so it suffers and wound and all excess is discarded.</p><p><br></p><p>The remaining hit is then compared against the next wound's Threshold of 4. Counting as 3 successes: it fails to meet the threshold and does not wound.</p></div><p class="cont"><br></p><ul data-src-name="Armor" class="is-source" id="src-armor"><li><b>Move and Shoot: </b>This unit may perform a Move action and Shoot action in the same activation.</li><li><b>Anti-Air X: </b>X is added to the hit rolls of all attacks resolved against an Aircraft</li><li><b>Attachment (X): </b>This unit may be attached to the unit in parenthesis. An Attachment unit may not perform actions on its activation and may only activate an ability.&nbsp;</li><li><b>Armor X: </b>A vehicle with this rule does not have to reduce its movement or destroy a weapon until it has lost more than X wounds.</li><li><b>Cumbersome X</b>: When resolving an attack with this weapon, subtract this number from the <a class="xref" href="#src-dice" title="Dice">dice</a> roll when making a Shoot action or add it when making a Fight action</li></ul><p class="cont"><br></p><h2 class="sec">Unit Types</h2><div>Units in Cyclopean fall into two major categories</div><ul><li><b>Infantry</b></li><li><b>Vehicle</b></li></ul><div style="text-align: left;" class="is-source" data-src-name="Infantry" id="src-infantry"><span style="color: rgb(20, 86, 107); font-family: &quot;Zilla Slab&quot;, sans-serif; font-size: 12pt; font-weight: 600;">Infantry</span></div><div style="text-align: left;">Infantry units typically make up the bulk of any force and have the following rules associated with them:</div><ul><li><b>Keep Low: </b>Any intervening piece of scatter terrain provides +1 to their wound Threshold against Ranged attacks</li><li><b>Effective Fire:</b>&nbsp;Infantry may not perform a <b>Move</b> and a <b>Shoot</b> action in the same activation unless they have Move and Shoot.</li><li><b>Boots on the Ground:&nbsp;</b>Only Infantry may hold objectives.</li><li><b>Break and Run:</b> If an infantry unit is <b>Engaged</b>, it may perform the&nbsp;<b>Fall Back Double Action</b>&nbsp;on its turn to break engagement. It is no longer engaged and must make a full <b>Move</b> away from the engaging enemy units. Afterwards, roll a D6 and move it that many inches further.</li></ul><h3 class="sub is-source" data-src-name="Vehicles" id="src-vehicles">Vehicles</h3><div style="text-align: left;"><a class="xref" href="#src-vehicles" title="Vehicles">Vehicles</a> operate differently from infantry in a number of ways.</div><ul><li><b>Hullbreak:</b> Each time a vehicle loses a wound it must choose to destroy a weapon or halve its movement.&nbsp;</li></ul><div class="box alarm"><span class="tab">No Man Left Behind</span><p>A unit's movement is always set to that of its slowest member. So if a vehicle has reduced movement, all other vehicles in its unit also have reduced movement as long as that model survives.</p></div><ul><li><b>Mortal Disregard:</b> Vehicle units treat <b>Fall Back</b>&nbsp;as a single action.</li><li><b>Stabilizers: </b>A vehicle may Move and Shoot in the same activation.</li></ul><div style="text-align: left;"><br></div></div>
     <div class="folio">
       <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">03</span>
     </div>
@@ -1028,7 +1274,7 @@ body.nomarg .marg{display:none}
       <span class="keel" aria-hidden="true"></span>
       <span class="r-part">Cyclopean</span>
     </div>
-    <div class="flow"><h2 class="sec">Unit Subtypes</h2><div>Many units have a sub-type that influences how they interact with the world.&nbsp;</div><h3 class="sub">Hover</h3><div>Hover covers a range of things from traditional envelope hovercraft to anti-gravity generators, and also includes things like jump packs or wings.&nbsp;</div><ul><li>Hover Units move freely over all terrain types.</li><li>Hover Vehicles must always choose to reduce their movement when suffering their first wound.</li></ul><h3 class="sub">Walker</h3><div>In Cyclopean there are numerous large mechs and vehicles that rely on their height for advantage.&nbsp;</div><ul><li>Walkers may move freely across Water so long as they have not reduced their movement</li><li>Walkers cannot enter Woods. The dense foliage obscuring optics is a death sentence for any pilot.</li></ul><h3 class="sub">Tracked</h3><div>The myriad of tracked vehicles that make up the bulk of any force.&nbsp;</div><ul><li>Tracked units suffer no penalties for movement through any terrain, nor do they gain any bonuses.</li></ul><h3 class="sub">Wheeled</h3><div>The numerous transported, armored cars, and fast response vehicles of the various factions.</div><ul><li>Wheeled units gain +4" of movement when performing a Move action entirely on a Road.</li><li>Wheeled units halve their movement in Fields and Woods.</li></ul><h3 class="sub">Mechanized</h3><div>The various suits of power armor, light mechs, and mechanical constructs.</div><ul><li>Mechanized units are considered infantry for all rules but are affected by Anti-Tank at half-effectiveness (Rounding up).</li></ul><h3 class="sub">Attachment</h3><div>The support units such as medics, wizards, overseers, and priests that accompany armies.&nbsp;</div><ul><li>An Attachment may be attached to a Parent unit. If it does so it adopts the Move stat of the parent unit. It will resolve any Actions with the parent unit. It also gains any rules or keywords associated with that parent unit but does not convey its own onto that unit.</li><li>Attachments maintain a separate activation to activate their abilities. Any ability that applies to "This Unit" also applies to their parent unit as well.&nbsp;</li></ul><h3 class="sub">Aircraft</h3><div>The jets, helicopters, and flying monstrosities that harry the battlefield.</div><ul><li>Aircraft must perform at least one Move action during their activation.&nbsp;</li><li>Aircraft may not reduce their movement after taking a wound.&nbsp;</li><li>Aircraft may not be Charge or be Charged, unless by against or by another Aircraft.&nbsp;</li><li>Ranged attacks against an Aircraft are always resolved on the worst result possible: A 6 on a D6, an 8 on a D8, and a 10 on a D10.</li></ul><h3 class="sub">Squadron</h3><div>The various types of complex units made up of many powerful individuals. Be it a sorcerous coven or a lethal kill team, these units are potent fighting forces until the end.</div><ul><li>Squadrons are infantry units with multiple wound boxes. Unlike regular infantry units, however, these units lose effectiveness with casualties.</li><li>The weapons profiles for a Squadron unit will show the individual attacks of each member of the squadron. When resolving an attack by this unit, form a dice pool by multiplying the weapons dice by the number of remaining wounds the unit has.</li></ul><div class="box reef"><span class="tab">Example</span><p>A unit of Deep One warriors is a Squadron. Each undamaged stand has a 2D6 melee attack and 2 wounds. Each stand would contribute 4d6 dice to dice pool. If it were to suffer a wound, it would instead only contribute 2d6 to the dice pool.</p></div></div>
+    <div class="flow"><h2 class="sec">Unit Subtypes</h2><div>Many units have a sub-type that influences how they interact with the world.&nbsp;</div><h3 class="sub">Hover</h3><div>Hover covers a range of things from traditional envelope hovercraft to anti-gravity generators, and also includes things like jump packs or wings.&nbsp;</div><ul><li>Hover Units move freely over all terrain types.</li><li>Hover <a class="xref" href="#src-vehicles" title="Vehicles">Vehicles</a> must always choose to reduce their movement when suffering their first wound.</li></ul><h3 class="sub">Walker</h3><div>In Cyclopean there are numerous large mechs and vehicles that rely on their height for advantage.&nbsp;</div><ul><li>Walkers may move freely across Water so long as they have not reduced their movement</li><li>Walkers cannot enter Woods. The dense foliage obscuring optics is a death sentence for any pilot.</li></ul><h3 class="sub">Tracked</h3><div>The myriad of tracked vehicles that make up the bulk of any force.&nbsp;</div><ul><li>Tracked units suffer no penalties for movement through any terrain, nor do they gain any bonuses.</li></ul><h3 class="sub">Wheeled</h3><div>The numerous transported, armored cars, and fast response vehicles of the various factions.</div><ul><li>Wheeled units gain +4" of movement when performing a Move action entirely on a Road.</li><li>Wheeled units halve their movement in Fields and Woods.</li></ul><h3 class="sub">Mechanized</h3><div>The various suits of power <a class="xref" href="#src-armor" title="Armor">armor</a>, light mechs, and mechanical constructs.</div><ul><li>Mechanized units are considered <a class="xref" href="#src-infantry" title="Infantry">infantry</a> for all rules but are affected by <a class="xref" href="#src-anti-tank" title="Anti-Tank">Anti-Tank</a> at half-effectiveness (Rounding up).</li></ul><h3 class="sub">Attachment</h3><div>The support units such as medics, wizards, overseers, and priests that accompany armies.&nbsp;</div><ul><li>An Attachment may be attached to a Parent unit. If it does so it adopts the Move stat of the parent unit. It will resolve any Actions with the parent unit. It also gains any rules or keywords associated with that parent unit but does not convey its own onto that unit.</li><li>Attachments maintain a separate activation to activate their abilities. Any ability that applies to "This Unit" also applies to their parent unit as well.&nbsp;</li></ul><h3 class="sub">Aircraft</h3><div>The jets, helicopters, and flying monstrosities that harry the battlefield.</div><ul><li>Aircraft must perform at least one Move action during their activation.&nbsp;</li><li>Aircraft may not reduce their movement after taking a wound.&nbsp;</li><li>Aircraft may not be Charge or be Charged, unless by against or by another Aircraft.&nbsp;</li><li>Ranged attacks against an Aircraft are always resolved on the worst result possible: A 6 on a D6, an 8 on a D8, and a 10 on a D10.</li></ul><h3 class="sub">Squadron</h3><div>The various types of complex units made up of many powerful individuals. Be it a sorcerous coven or a lethal kill team, these units are potent fighting forces until the end.</div><ul><li>Squadrons are infantry units with multiple wound boxes. Unlike regular infantry units, however, these units lose effectiveness with casualties.</li><li>The weapons profiles for a Squadron unit will show the individual attacks of each member of the squadron. When resolving an attack by this unit, form a <a class="xref" href="#src-dice-pool" title="Dice Pool">dice pool</a> by multiplying the weapons <a class="xref" href="#src-dice" title="Dice">dice</a> by the number of remaining wounds the unit has.</li></ul><div class="box reef"><span class="tab">Example</span><p>A unit of Deep One warriors is a Squadron. Each undamaged stand has a 2D6 melee attack and 2 wounds. Each stand would contribute 4d6 dice to dice pool. If it were to suffer a wound, it would instead only contribute 2d6 to the dice pool.</p></div></div>
     <div class="folio">
       <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">04</span>
     </div>
@@ -1066,7 +1312,7 @@ body.nomarg .marg{display:none}
       <span class="keel" aria-hidden="true"></span>
       <span class="r-part">Cyclopean</span>
     </div>
-    <div class="flow"><h2 class="sec">Unit Stats</h2><div>Units in Cyclopean come with a unit card. This is a generally compact reference card that will be used throughout the game. It will tell you what faction a unit belongs to, how many models are in each unit, what elements it generates, and various other combat characteristics.</div><div><br></div><p class="term"><b>Name:</b>&nbsp;The name of the unit</p><p class="term"><b>Points:</b> The cost in points to include this unit in your army.</p><p class="term"><b>Move:</b> A model's speed. Each stand in a unit moves up to this distance when making a Move action.</p><p class="term"><b>Fighting:</b> When resolving a Fight action this is the number you are looking to roll equal to or under in order to achieve a hit. A higher number is better.</p><p class="term"><b>Stands:</b>&nbsp;The number of models a unit starts the game with. Models and stands can be used interchangeably.</p><p class="term"><b>Major Energy:</b> The only, or the leftmost, symbol represents a unit's Major Energy. When drawing from the Energy Deck, this unit may be activated if its corresponding element is drawn.</p><p class="term"><b>Minor Energy:</b>&nbsp;Any symbol after the first. These represent excess energy or an overabundance of power that a unit provides. When a unit with a Minor Energy is activated, add a corresponding card to your Energy Pool.</p><p class="term"><b>Wound Track:</b>&nbsp;These are a model's wounds, represented by a box with a number in it. When a unit loses a wound, a box is marked off. Once a model loses all of its wounds it is immediately removed as a casualty.</p><p class="term"><b>Wound Threshold:</b> The number inside of each Wound Box. This is the number of successful hits needed to check the corresponding wound box.</p><p class="term"><br></p><p class="term"><br></p><p class="term"><br></p><h2 class="sec">Weapon Stats</h2><div>On a unit's card are any weapon it is equipped with. Any weapon with a Range characteristic is considered a Ranged weapon and is used when making a Shoot action. Any weapon with a range of — is a melee weapon and is used when making a Fight action.</div><p class="term"><b>Range:</b> The effective firing range of a weapon. This is the distance in inches an enemy stand must be within for a model in this unit to use this weapon.&nbsp;</p><p class="term"><b>Dice/Stand (STD):</b> The number of dice added to the Dice Pool for each unit participating in a Shoot action or Fight action.</p><p class="term"><b>Hit:</b>&nbsp;The dice roll required to score a Success when resolving an attack with this weapon. This is sometimes referred to as the 'Hit Number' or 'to hit' number.</p><div class="box reef"><span class="tab">To Hit Number</span><p>When resolving an attack, Ranged Attacks search for higher numbers. This is represented by a + symbol after the Hit number.&nbsp;</p><p><span style="font-size: 9.5pt;">Melee weapons are search for lower numbers. This is represented by a - symbol after the Hit number.</span></p></div><p class="term"><b>Rules:</b> This is where any rules that modify the weapon may be included. This includes: Impact, Anti-Tank, Cumbersome, Anti-Air.&nbsp;</p><div class="box alarm"><span class="tab">Weapons of Desperation</span><p>All units are considered to be equipped with a 2D8 melee weapon with no special rules.</p></div></div>
+    <div class="flow"><h2 class="sec">Unit Stats</h2><div>Units in Cyclopean come with a unit card. This is a generally compact reference card that will be used throughout the game. It will tell you what faction a unit belongs to, how many models are in each unit, what elements it generates, and various other combat characteristics.</div><div><br></div><p class="term"><b>Name:</b>&nbsp;The name of the unit</p><p class="term"><b>Points:</b> The cost in points to include this unit in your army.</p><p class="term"><b>Move:</b> A model's speed. Each stand in a unit moves up to this <a class="xref" href="#src-measuring" title="Distance">distance</a> when making a Move action.</p><p class="term"><b>Fighting:</b> When resolving a Fight action this is the number you are looking to roll equal to or under in order to achieve a hit. A higher number is better.</p><p class="term"><b>Stands:</b>&nbsp;The number of models a unit starts the game with. Models and stands can be used interchangeably.</p><p class="term"><b>Major Energy:</b> The only, or the leftmost, symbol represents a unit's Major Energy. When drawing from the Energy Deck, this unit may be activated if its corresponding element is drawn.</p><p class="term"><b>Minor Energy:</b>&nbsp;Any symbol after the first. These represent excess energy or an overabundance of power that a unit provides. When a unit with a Minor Energy is activated, add a corresponding card to your Energy Pool.</p><p class="term"><b>Wound Track:</b>&nbsp;These are a model's wounds, represented by a box with a number in it. When a unit loses a wound, a box is marked off. Once a model loses all of its wounds it is immediately removed as a casualty.</p><p class="term"><b>Wound Threshold:</b> The number inside of each Wound Box. This is the number of successful hits needed to check the corresponding wound box.</p><p class="term"><br></p><p class="term"><br></p><p class="term"><br></p><h2 class="sec">Weapon Stats</h2><div>On a unit's card are any weapon it is equipped with. Any weapon with a Range characteristic is considered a Ranged weapon and is used when making a Shoot action. Any weapon with a range of — is a melee weapon and is used when making a Fight action.</div><p class="term"><b>Range:</b> The effective firing range of a weapon. This is the distance in inches an enemy stand must be within for a model in this unit to use this weapon.&nbsp;</p><p class="term"><b><a class="xref" href="#src-dice" title="Dice">Dice</a>/Stand (STD):</b> The number of dice added to the <a class="xref" href="#src-dice-pool" title="Dice Pool">Dice Pool</a> for each unit participating in a Shoot action or Fight action.</p><p class="term"><b>Hit:</b>&nbsp;The dice roll required to score a Success when resolving an attack with this weapon. This is sometimes referred to as the 'Hit Number' or 'to hit' number.</p><div class="box reef"><span class="tab">To Hit Number</span><p>When resolving an attack, Ranged Attacks search for higher numbers. This is represented by a + symbol after the Hit number.&nbsp;</p><p><span style="font-size: 9.5pt;">Melee weapons are search for lower numbers. This is represented by a - symbol after the Hit number.</span></p></div><p class="term"><b>Rules:</b> This is where any rules that modify the weapon may be included. This includes: Impact, <a class="xref" href="#src-anti-tank" title="Anti-Tank">Anti-Tank</a>, Cumbersome, Anti-Air.&nbsp;</p><div class="box alarm"><span class="tab">Weapons of Desperation</span><p>All units are considered to be equipped with a 2D8 melee weapon with no special rules.</p></div></div>
     <div class="folio">
       <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">05</span>
     </div>
@@ -1104,7 +1350,7 @@ body.nomarg .marg{display:none}
       <span class="keel" aria-hidden="true"></span>
       <span class="r-part">Cyclopean</span>
     </div>
-    <div class="flow"><h2 class="sec">Abilities</h2><div>Each unit has up to three abilities, each with a different cost to be paid to use. A unit may only activate one ability per activation. These abilities are activated when a unit is selected to be activated but&nbsp; before any actions are completed.&nbsp;</div><div><br></div><div>An ability will typically be formatted with the ability name and its cost. This ranges from one to three Energy symbols. This is the cost that must be paid to activate an ability. Each ability will describe what the ability does.&nbsp;</div><div><br></div><div>Abilities, unless otherwise specified, have the following restrictions:</div><ul><li><b>Duration: </b>An ability only lasts until the end of the turn. If an ability provides a status the unit retains that status until it meets any criteria that would remove that status.</li><li><b>Target: </b>A <b>Friendly</b> unit.</li><li><b>Stacking: </b>A unit may not benefit from the same ability multiple times regardless of source.</li></ul><div class="box alarm"><span class="tab">Power at Hand</span><p>When a card is drawn from the Energy Deck, it is immediately added to the Energy Pool after selecting a unit to activate. Once a unit is selected, any Minor Energies for that unit are added to the Energy Pool.&nbsp;</p><p>This energy made be used to activate abilities of the selected unit. There is no need to wait.</p><p>There are no restrictions on Ordered units spending energy from the Energy Pool when activated, they just don't add their Energy to the pool.</p></div><div>Some abilities state that they can only be used Once per game. This restriction is per unit and does not apply to any other units with the same name.</div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div>Some units may have multiple abilities at a lower cost, or have multiple abilities at a higher cost. Typically units will use their Major Energy for their first ability. Always double check and never assume all units follow the 1-2-3 cost format or have a similar energy cost structure.&nbsp;</div></div>
+    <div class="flow"><h2 class="sec">Abilities</h2><div>Each unit has up to three abilities, each with a different cost to be paid to use. A unit may only activate one ability per activation. These abilities are activated when a unit is selected to be activated but&nbsp; before any actions are completed.&nbsp;</div><div><br></div><div>An ability will typically be formatted with the ability name and its cost. This ranges from one to three Energy symbols. This is the cost that must be paid to activate an ability. Each ability will describe what the ability does.&nbsp;</div><div><br></div><div>Abilities, unless otherwise specified, have the following restrictions:</div><ul><li><b>Duration: </b>An ability only lasts until the end of the turn. If an ability provides a status the unit retains that status until it meets any criteria that would remove that status.</li><li><b>Target: </b>A <b>Friendly</b> unit.</li><li><b>Stacking: </b>A unit may not benefit from the same ability multiple times regardless of source.</li></ul><div class="box alarm"><span class="tab">Power at Hand</span><p>When a card is drawn from the Energy Deck, it is immediately added to the Energy Pool after selecting a unit to activate. Once a unit is selected, any Minor Energies for that unit are added to the Energy Pool.&nbsp;</p><p>This energy made be used to activate abilities of the selected unit. There is no need to wait.</p><p>There are no restrictions on Ordered units spending energy from the Energy Pool when activated, they just don't add their Energy to the pool.</p></div><div>Some abilities state that they can only be used Once per game. This restriction is per unit and does not apply to any other units with the same name.</div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div>Some units may have multiple abilities at a lower cost, or have multiple abilities at a higher cost. Typically units will use their Major Energy for their first ability. Always double check and never assume all units follow the 1-2-3 cost format or have a similar energy cost structure.&nbsp;</div><h2 class="sec">Energy</h2></div>
     <div class="folio">
       <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">06</span>
     </div>
@@ -1142,7 +1388,7 @@ body.nomarg .marg{display:none}
       <span class="keel" aria-hidden="true"></span>
       <span class="r-part">Cyclopean</span>
     </div>
-    <div class="flow"><h2 class="sec is-source" data-src-name="Transparency" data-src-alt="Sharing" id="src-transparency">Sharing information</h2><div>The battles in Cyclopean are vile conflicts between different occult orders each steeped in their own arcane rites and lores. They wield secrets that could melt minds and render the weak as dumb-mutes. This game, however, is one meant to played between two normal people for fun.&nbsp;</div><div><br></div><div>During a game, your opponent may wish to see your your units cards and abilities. Always present this information and provide them with it without any reservation. They must know what your units are capable of but they have no right to your machinations and plans.&nbsp;</div><h2 class="sec is-source" data-src-name="Measuring" data-src-alt="Distance|Measure" id="src-measuring">Measuring Distances</h2><div>A player may measure distances at any time during the course of the game. Whether by satellite, augurs, or drones, the battlefield of the future has lost much of its fog of war.&nbsp;</div><div>When measuring the distance from a model, measure from the edge of the model's base to nearest edge of the nearest model in the target unit. A model is <b>within</b>&nbsp;range if any portion of the base is within that distance.&nbsp;</div><div>A model is <b>completely</b>&nbsp;within range when its entire base is within that range.&nbsp;</div><div><br></div><div>When two bases are touching they are considered to be within 0" of each other. This is referred to as "base-to-base."</div><h2 class="sec">Line of Sight</h2><div>Cyclopean uses true Line of Sight: If a model can draw a line to an enemy model then it is considered to be within line of sight. There are some conditions, however, that restrict this. Certain terrain blocks line of sight such as forests. And if a targeted model is majority obscured by a vehicle it is considered to not be in Line of Sight.</div><h2 class="sec">Unit Cohesion</h2><h3 class="sub">Brothers in the Dark</h3><div>Units may maneuver freely in relation to each other but all models within a unit must remain in cohesion. A unit is considered in cohesion if all models are within 6" of every other model in the same unit.</div><div>A unit may not end a Move or Charge action with any models out of Cohesion.&nbsp;</div><div><br></div></div>
+    <div class="flow"><h2 class="sec is-source" data-src-name="Transparency" data-src-alt="Sharing" id="src-transparency">Sharing information</h2><div>The battles in Cyclopean are vile conflicts between different occult orders each steeped in their own arcane rites and lores. They wield secrets that could melt minds and render the weak as dumb-mutes. This game, however, is one meant to played between two normal people for fun.&nbsp;</div><div><br></div><div>During a game, your opponent may wish to see your your units cards and abilities. Always present this information and provide them with it without any reservation. They must know what your units are capable of but they have no right to your machinations and plans.&nbsp;</div><h2 class="sec is-source" data-src-name="Measuring" data-src-alt="Distance|Measure" id="src-measuring">Measuring Distances</h2><div>A player may measure distances at any time during the course of the game. Whether by satellite, augurs, or drones, the battlefield of the future has lost much of its fog of war.&nbsp;</div><div>When <a class="xref" href="#src-measuring" title="Measuring">measuring</a> the distance from a model, measure from the edge of the model's base to nearest edge of the nearest model in the target unit. A model is <b>within</b>&nbsp;range if any portion of the base is within that distance.&nbsp;</div><div>A model is <b>completely</b>&nbsp;within range when its entire base is within that range.&nbsp;</div><div><br></div><div>When two bases are touching they are considered to be within 0" of each other. This is referred to as "base-to-base."</div><h2 class="sec">Line of Sight</h2><div>Cyclopean uses true Line of Sight: If a model can draw a line to an enemy model then it is considered to be within line of sight. There are some conditions, however, that restrict this. Certain terrain blocks line of sight such as forests. And if a targeted model is majority obscured by a vehicle it is considered to not be in Line of Sight.</div><h2 class="sec">Unit Cohesion</h2><h3 class="sub">Brothers in the Dark</h3><div>Units may maneuver freely in relation to each other but all models within a unit must remain in cohesion. A unit is considered in cohesion if all models are within 6" of every other model in the same unit.</div><div>A unit may not end a Move or Charge action with any models out of Cohesion.&nbsp;</div></div>
     <div class="folio">
       <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">07</span>
     </div>
@@ -1218,7 +1464,7 @@ body.nomarg .marg{display:none}
       <span class="keel" aria-hidden="true"></span>
       <span class="r-part">Cyclopean</span>
     </div>
-    <div class="flow"><h2 class="sec">Activation</h2><div>Units in Cyclopean can only be activated once per turn, whether it is in the Vigilance Phase or Torpor phase. Depending on the phase what units are eligible to be activated change:</div><p class="term"><b>Vigilance Phase:</b>&nbsp;Only Ordered units may be activated in this phase.&nbsp;</p><p class="term"><b>Torpor Phase:</b>&nbsp;Ordered units may be activated at any time a player may choose a unit to activate. An Extracted unit can only be activated by first drawing its corresponding energy from the Energy Deck.</p><div>When a unit is Activated it first may activate an ability. This is done by declaring you are activating an ability and paying its ability cost by removing the corresponding Energy cards from your Energy Pool. Once this has been completed, resolve the ability in its entirety before moving on.</div><div><br></div><div>After this ability window, a unit may perform two Actions. Unless otherwise noted a unit may perform the same Action multiple times. Any Action performed as a Free does not count against any limits when a unit performs its normal Actions. Some Actions cost both possible Actions, these are referred to as Complex Actions.</div><h3 class="sub"><br></h3><h3 class="sub"><br></h3><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><h3 class="sub"><span style="font-size: 12pt;">Actions</span></h3><ul><li><b>Move: </b>A unit moves each stand up to their Move stat. A unit that performs a Move action may not perform a Shoot action in the same activation.</li><li><b>Fight: </b>A unit performs a Melee attack against a unit it is currently Engaged with.</li><li><b>Shoot:</b> A unit performs a Ranged Attack against an eligible target.</li><li><b>Interact (Simple): </b>A unit interacts with an objective as determined by the scenario.</li><li><b>Fall Back (Vehicle):</b> A unit loses the Engaged status and performs a Move action.</li></ul><h3 class="sub">Complex Actions</h3><ul><li><b>Charge: </b>This unit selects an enemy model within its Move + 6". This unit performs a Move action, ending as close as possible to enemy unit. (Maneuvering around terrain as needed). Its controlling player then measures the distance between the nearest Friendly model in the unit and the nearest Enemy model and rolls a D6.&nbsp;</li></ul><div class="box reef"><span class="tab">Success</span><p>If the roll is equal to or greater than the distance, move each stand a number of inches equal to that roll so that at least one model is base-to-base with the selected unit. They are now engaged and the charging unit immediately performs a Fight.</p></div><div class="box alarm"><span class="tab">Failure</span><p>If the roll is less than the distance between the two units, the charge has failed and the unit performs no further move. Its activation ends unless it can perform another action.</p></div><ul><li><b>Keep Low (Infantry Only):</b> A unit performs a standard Move action but keeps the Concealment status.&nbsp;</li><li><b>Interact (Complex): </b>A unit interacts with an objective as determined by the scenario.</li><li><b>Fall Back (Infantry):</b> A unit loses the Engaged status and performs a Move action, adding D6 to their Move stat while performing this action.</li></ul></div>
+    <div class="flow"><h2 class="sec">Activation</h2><div>Units in Cyclopean can only be activated once per turn, whether it is in the Vigilance Phase or Torpor phase. Depending on the phase what units are eligible to be activated change:</div><p class="term"><b>Vigilance Phase:</b>&nbsp;Only Ordered units may be activated in this phase.&nbsp;</p><p class="term"><b>Torpor Phase:</b>&nbsp;Ordered units may be activated at any time a player may choose a unit to activate. An Extracted unit can only be activated by first drawing its corresponding energy from the Energy Deck.</p><div>When a unit is Activated it first may activate an ability. This is done by declaring you are activating an ability and paying its ability cost by removing the corresponding Energy cards from your Energy Pool. Once this has been completed, resolve the ability in its entirety before moving on.</div><div><br></div><div>After this ability window, a unit may perform two Actions. Unless otherwise noted a unit may perform the same Action multiple times. Any Action performed as a Free does not count against any limits when a unit performs its normal Actions. Some Actions cost both possible Actions, these are referred to as Complex Actions.</div><h3 class="sub"><br></h3><h3 class="sub"><br></h3><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><div><br></div><h3 class="sub"><span style="font-size: 12pt;">Actions</span></h3><ul><li><b>Move: </b>A unit moves each stand up to their Move stat. A unit that performs a Move action may not perform a Shoot action in the same activation.</li><li><b>Fight: </b>A unit performs a Melee attack against a unit it is currently Engaged with.</li><li><b>Shoot:</b> A unit performs a Ranged Attack against an eligible target.</li><li><b>Interact (Simple): </b>A unit interacts with an objective as determined by the scenario.</li><li><b>Fall Back (Vehicle):</b> A unit loses the Engaged status and performs a Move action.</li></ul><h3 class="sub">Complex Actions</h3><ul><li><b>Charge: </b>This unit selects an enemy model within its Move + 6". This unit performs a Move action, ending as close as possible to enemy unit. (Maneuvering around terrain as needed). Its controlling player then measures the <a class="xref" href="#src-measuring" title="Distance">distance</a> between the nearest Friendly model in the unit and the nearest Enemy model and rolls a D6.&nbsp;</li></ul><div class="box reef"><span class="tab">Success</span><p>If the roll is equal to or greater than the distance, move each stand a number of inches equal to that roll so that at least one model is base-to-base with the selected unit. They are now engaged and the charging unit immediately performs a Fight.</p></div><div class="box alarm"><span class="tab">Failure</span><p>If the roll is less than the distance between the two units, the charge has failed and the unit performs no further move. Its activation ends unless it can perform another action.</p></div><ul><li><b>Keep Low (<a class="xref" href="#src-infantry" title="Infantry">Infantry</a> Only):</b> A unit performs a standard Move action but keeps the Concealment status.&nbsp;</li><li><b>Interact (Complex): </b>A unit interacts with an objective as determined by the scenario.</li><li><b>Fall Back (Infantry):</b> A unit loses the Engaged status and performs a Move action, adding D6 to their Move stat while performing this action.</li></ul></div>
     <div class="folio">
       <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">09</span>
     </div>
@@ -1256,12 +1502,202 @@ body.nomarg .marg{display:none}
       <span class="keel" aria-hidden="true"></span>
       <span class="r-part">Cyclopean</span>
     </div>
-    <div class="flow"><h2 class="sec">Ranged Combat</h2><div>When a unit declares a Shoot action, it is considered to make a Shooting Attack or Ranged Attack, used interchangeably. When making a Shoot Action, perform the following steps:</div><p class="term"><b>1:</b> Declare your targets. Infantry may only declare one target. Vehicles may declare different targets for each weapon the unit is equipped with. All targets must be declared before any dice are rolled.</p><p class="term"><b>2:&nbsp;</b>Determine line of sight for each model in the shooting unit. As long as a model can draw line of sight to any model in the target unit it may contribute to the dice pool.</p><p class="term"><b>3:</b>&nbsp;Form your dice pool for each weapon. A dice pool is made up of the same weapon from each stand. If a unit has 4 riflemen that each have a 3d6 ranged attack, you would form a dice pool of 12 dice. This may not be combined with another weapon.</p><p class="term"><b>4:</b>&nbsp;Roll your dice pool. For each dice that is equal to or greater than your Hit number is considered a Hit. Add your Hits together and compare them to your target's Wound Threshold. If the number of hits meets or exceeds the target's Wound Threshold then it suffers a wound. Remove that many successes from your pool. Continue to compare your hits to the enemy's wound threshold until you may no longer successfully wound them.</p><div class="box alarm"><span class="tab">Impact and Anti-Infantry/Vehicle</span><p>Impact is for heavy armor piercing weapons that are effective on both infantry and vehicles. This reduces the Wound Threshold of each box in the target unit when resolving an attack.&nbsp;</p><p>Anti-Infantry and Anti-Vehicle weapons are specialized, either with flechette rounds or shaped charges their effects are diminished. Each hit by a weapon with Anti-Infantry X counts as X successes. These do not roll over after meeting a Wound Threshold and excess is discarded. Against a target with a Wound Threshold of 3-3, an Anti-Infantry 2 weapon would require 4 successful hits to destroy.</p></div><h2 class="sec">Melee Combat</h2><div>A unit may only perform a Fight action against a unit it is Engaged with. Engaged is a condition typically conveyed by being Charged or Charging successfully. Melee in a frantic clash of claws, knives, and fanaticism, with both sides attacking simultaneously. When making a Fight action, perform the following steps:</div><p class="term"><b>1:</b> Declare your targets. Each model in a unit may declare any unit they are Engaged with as a target.&nbsp;</p><p class="term"><b>2:</b>&nbsp;For each unit targeted in this way, the defender may then select a target for that unit.</p><p class="term"><b>3:</b>&nbsp;Both you and your opponent form dice pools for each unit participating in the Fight. For each targeted unit, form a separate Dice Pool.</p><p class="term"><b>4:</b>&nbsp;Each player simultaneously rolls their dice pool. For every roll equal to or less than their Fighting characteristic, the hit is a success. The number of hits are compared to the target's wound threshold, and if meeting or exceeding they cause a wound.</p><div class="box reef"><span class="tab">Removing Casualties</span><p>If this Fight action is being resolved as part of a charge, the defending player must remove stands from closest to the enemy, and the attacker replaces that stand with their furthest models as they surge forward into the gap they have created.&nbsp;</p><p><br></p><p>If this Fight action is being resolved as part of a standard activation, casualties are removed from those furthest from the enemy, or 'pulled from the back'.</p></div><p class="term"><br></p><div><br></div><div><br></div></div>
+    <div class="flow"><h2 class="sec">Ranged Combat</h2><div>When a unit declares a Shoot action, it is considered to make a Shooting Attack or Ranged Attack, used interchangeably. When making a Shoot Action, perform the following steps:</div><p class="term"><b>1:</b> Declare your targets. <a class="xref" href="#src-infantry" title="Infantry">Infantry</a> may only declare one target. <a class="xref" href="#src-vehicles" title="Vehicles">Vehicles</a> may declare different targets for each weapon the unit is equipped with. All targets must be declared before any <a class="xref" href="#src-dice" title="Dice">dice</a> are rolled.</p><p class="term"><b>2:&nbsp;</b>Determine line of sight for each model in the shooting unit. As long as a model can draw line of sight to any model in the target unit it may contribute to the <a class="xref" href="#src-dice-pool" title="Dice Pool">dice pool</a>.</p><p class="term"><b>3:</b>&nbsp;Form your dice pool for each weapon. A dice pool is made up of the same weapon from each stand. If a unit has 4 riflemen that each have a 3d6 ranged attack, you would form a dice pool of 12 dice. This may not be combined with another weapon.</p><p class="term"><b>4:</b>&nbsp;Roll your dice pool. For each dice that is equal to or greater than your Hit number is considered a Hit. Add your Hits together and compare them to your target's Wound Threshold. If the number of hits meets or exceeds the target's Wound Threshold then it suffers a wound. Remove that many successes from your pool. Continue to compare your hits to the enemy's wound threshold until you may no longer successfully wound them.</p><div class="box alarm"><span class="tab">Impact and Anti-Infantry/Vehicle</span><p>Impact is for heavy <a class="xref" href="#src-armor" title="Armor">armor</a> piercing weapons that are effective on both infantry and vehicles. This reduces the Wound Threshold of each box in the target unit when resolving an attack.&nbsp;</p><p><a class="xref" href="#src-anti-tank" title="Anti-Infantry">Anti-Infantry</a> and Anti-Vehicle weapons are specialized, either with flechette rounds or shaped charges their effects are diminished. Each hit by a weapon with Anti-Infantry X counts as X successes. These do not roll over after meeting a Wound Threshold and excess is discarded. Against a target with a Wound Threshold of 3-3, an Anti-Infantry 2 weapon would require 4 successful hits to destroy.</p></div><h2 class="sec">Melee Combat</h2><div>A unit may only perform a Fight action against a unit it is Engaged with. Engaged is a condition typically conveyed by being Charged or Charging successfully. Melee in a frantic clash of claws, knives, and fanaticism, with both sides attacking simultaneously. When making a Fight action, perform the following steps:</div><p class="term"><b>1:</b> Declare your targets. Each model in a unit may declare any unit they are Engaged with as a target.&nbsp;</p><p class="term"><b>2:</b>&nbsp;For each unit targeted in this way, the defender may then select a target for that unit.</p><p class="term"><b>3:</b>&nbsp;Both you and your opponent form dice pools for each unit participating in the Fight. For each targeted unit, form a separate Dice Pool.</p><p class="term"><b>4:</b>&nbsp;Each player simultaneously rolls their dice pool. For every roll equal to or less than their Fighting characteristic, the hit is a success. The number of hits are compared to the target's wound threshold, and if meeting or exceeding they cause a wound.</p><div class="box reef"><span class="tab">Removing Casualties</span><p>If this Fight action is being resolved as part of a charge, the defending player must remove stands from closest to the enemy, and the attacker replaces that stand with their furthest models as they surge forward into the gap they have created.&nbsp;</p><p><br></p><p>If this Fight action is being resolved as part of a standard activation, casualties are removed from those furthest from the enemy, or 'pulled from the back'.</p></div><p class="term"><br></p><div><br></div><div><br></div><div><br></div><div><br></div></div>
     <div class="folio">
       <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">10</span>
     </div>
   </div>
-<div class="marg side" data-at="0.34" data-auto="1" style="top: 43%; transform: rotate(1.7deg); opacity: 0.338;">I have read this page eleven times</div></section>
+<div class="marg side" data-at="0.34" data-auto="1" style="top: 43%; transform: rotate(1.7deg); opacity: 0.338;">I have read this page eleven times</div><div class="marg side" data-at="0.38" style="top: 30%; transform: rotate(-1.5deg); opacity: 0.306;">a hand in the margin</div></section><section class="page verso" data-marg-done="1">
+  <div class="overflag">Content overflows this page</div>
+  <div class="kelp" aria-hidden="true"><svg viewBox="0 0 60 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+<path d="M31 0C13 90 47 168 27 258 8 344 44 410 24 500 6 584 42 656 26 748 12 828 38 866 30 900"></path>
+<path d="M31 30C46 74 40 118 27 150" stroke-width="1.4"></path>
+<path d="M28 240C10 268 6 320 18 356" stroke-width="1.4"></path>
+<path d="M26 470C44 502 48 556 36 596" stroke-width="1.4"></path>
+<path d="M25 690C9 716 5 762 16 796" stroke-width="1.4"></path>
+</g>
+<g fill="currentColor" opacity=".85">
+<path d="M31 62c14-16 26-10 30 4-16 10-26 8-30-4z"></path>
+<path d="M29 128c-13-18-26-14-31 0 15 12 25 11 31 0z"></path>
+<path d="M27 206c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M24 300c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 388c15-15 28-8 30 6-17 9-27 6-30-6z"></path>
+<path d="M22 466c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+<path d="M28 552c16-13 28-4 29 10-17 7-26 3-29-10z"></path>
+<path d="M24 640c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 722c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M23 812c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+</g>
+<g fill="currentColor" opacity=".6">
+<circle cx="37" cy="96" r="4"></circle><circle cx="17" cy="176" r="3.4"></circle>
+<circle cx="35" cy="346" r="3.6"></circle><circle cx="17" cy="516" r="4"></circle>
+<circle cx="36" cy="606" r="3.4"></circle><circle cx="18" cy="770" r="3.6"></circle>
+</g></svg></div>
+  <div class="sheet">
+    <div class="runner">
+      <span class="r-chapter">Chapter 2</span>
+      <span class="keel" aria-hidden="true"></span>
+      <span class="r-part">Cyclopean</span>
+    </div>
+    <div class="flow"><h2 class="sec">Terrain</h2><p class="term"><b>Fields:</b>&nbsp;Fields block Line of Sight for <a class="xref" href="#src-infantry" title="Infantry">Infantry</a> units. An infantry unit ending a Move action with every model within a field gain Concealment. Walkers may ignore the Concealment status when targeting a unit inside of a Field.</p><p class="term"><b>Light Fortifications:</b> Light fortifications are represented by any low linear obstacle. These grant infantry units +1 to their Wound Threshold against any ranged attack drawing Line of Sight over it to at least half their models.</p><p class="term"><b>Heavy Fortifications:</b> Buildings, Bunkers and any prepared position. Any unit in a heavy fortification adds +1 to their Wound Threshold against ranged attacks. Additionally, infantry units ending a Move Action in a Heavy Fortification gain Concealment.</p><p class="term"><b>Marsh/Mud:&nbsp;</b>Difficult Terrain for Infantry and Wheeled <a class="xref" href="#src-vehicles" title="Vehicles">Vehicles</a>.</p><p class="term"><b>Roads:</b>&nbsp;Wheeled units that begin a Move Action entirely on a road add 4" to their Move for that action.</p><p class="term"><b>Rubble:</b> Difficult Terrain for all vehicles except Hover Vehicles and Tracked Vehicles.</p><p class="term"><b>Smoke:</b>&nbsp;Units outside of smoke may not draw line of sight through smoke, but line of sight may be drawn into smoke. Units ending a Move Action in smoke gain Concealment. These are typically represented by a 3" round circle or a 5" round circle. The 3" Smoke marker lasts for 2 turns. A 5" Smoke marker lasts for 3 turns.</p><p class="term"><b>Water:</b> Impassable terrain. Walkers without reduced movement, hover units, boats, and amphibious units may move move across it freely.&nbsp;</p><p class="term"><b>Woods/Forest:</b> Heavy woodland copses and bramble tangles. A bane to any elevated fighting platform. Impassable to Hover Units and Walkers. Ending a move with all units within a forest gain Concealment. If this Concealment is lost, it may not be regained without the unit ending a Move Action wholly outside of that forest.</p><div class="box alarm"><span class="tab">DIfficult Terrain</span><p><i>Difficult Terrain is represented by a myriad of things from <a class="xref" href="#src-anti-tank" title="Anti-Tank">anti-tank</a> traps to mud, rubble, and other obstacles that impede effective movement.</i></p><p>Any unit effected by Difficult Terrain reduces their Move to 3".</p><p>A unit is effected by Difficult Terrain if it begins its activation with at least one model within Difficult Terrain and does not end a Move action with no models within Difficult Terrain</p></div><h2 class="sec">Hazards</h2><div>Some terrain is more than just a threat of a broken ankle. Beyond the horrors of war there are many things lurking at the threshold.</div><div>When a piece of terrain is described a hazard, a unit that ends a Move action or ends its activation within the Hazard Range must roll a Hazard Check. A typical Hazard will have the number of <a class="xref" href="#src-dice" title="Dice">dice</a> rolled and the result needed to score a successful hit against the unit, resolved as an attack.</div><div>A unit can only be forced to make a Hazard Check once per Hazard per turn.</div><div class="box alarm"><span class="tab">Corruption</span><p>Some Hazards cause Corruption. When a unit gains Corruption place some kind of marker next to it. For the rest of the game, whenever a unit with Corruption makes a Hazard Check, add that many dice to the Hazard Pool.</p></div></div>
+    <div class="folio">
+      <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">11</span>
+    </div>
+  </div>
+<div class="marg foot" data-at="0.28" data-auto="1" style="left: 15%; transform: rotate(1deg); opacity: 0.9;">it was not here last week</div></section><section class="page recto" data-marg-done="1">
+  <div class="overflag">Content overflows this page</div>
+  <div class="kelp" aria-hidden="true"><svg viewBox="0 0 60 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+<path d="M31 0C13 90 47 168 27 258 8 344 44 410 24 500 6 584 42 656 26 748 12 828 38 866 30 900"></path>
+<path d="M31 30C46 74 40 118 27 150" stroke-width="1.4"></path>
+<path d="M28 240C10 268 6 320 18 356" stroke-width="1.4"></path>
+<path d="M26 470C44 502 48 556 36 596" stroke-width="1.4"></path>
+<path d="M25 690C9 716 5 762 16 796" stroke-width="1.4"></path>
+</g>
+<g fill="currentColor" opacity=".85">
+<path d="M31 62c14-16 26-10 30 4-16 10-26 8-30-4z"></path>
+<path d="M29 128c-13-18-26-14-31 0 15 12 25 11 31 0z"></path>
+<path d="M27 206c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M24 300c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 388c15-15 28-8 30 6-17 9-27 6-30-6z"></path>
+<path d="M22 466c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+<path d="M28 552c16-13 28-4 29 10-17 7-26 3-29-10z"></path>
+<path d="M24 640c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 722c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M23 812c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+</g>
+<g fill="currentColor" opacity=".6">
+<circle cx="37" cy="96" r="4"></circle><circle cx="17" cy="176" r="3.4"></circle>
+<circle cx="35" cy="346" r="3.6"></circle><circle cx="17" cy="516" r="4"></circle>
+<circle cx="36" cy="606" r="3.4"></circle><circle cx="18" cy="770" r="3.6"></circle>
+</g></svg></div>
+  <div class="sheet">
+    <div class="runner">
+      <span class="r-chapter">Chapter 2</span>
+      <span class="keel" aria-hidden="true"></span>
+      <span class="r-part">Cyclopean</span>
+    </div>
+    <div class="flow"><h2 class="sec">Eldritch Terrain and Objectives</h2><p class="term"><b>Obelisk:</b>&nbsp;An obelisk has a random Energy determined at the start of the game by players rolling off and then drawing an Energy Card. During the Extraction phase, a player with at least one unit within 6" may add an Energy of that type to their Energy Pool. If they do so, they add a Corruption a friendly unit within 6" of the Obelisk.</p><p class="term"><b>Hanging Tree:</b>&nbsp;A unit within 3" of the Hanging Tree may not be Ordered.</p><p class="term"><b>Font of Madness:</b>&nbsp;If a player controls this objective and it is their turn to activate a unit, they may spend an Energy to draw two Energy Cards, selecting one to activate and shuffling the other into the Energy Deck.</p><p class="term"><b>Twisting Sigil:</b>&nbsp;If a player controls this objective, during the Extraction phase, a player may change the Major Energy of a unit within 3" until the end of the turn. This is done before resolving step 2 of the Extraction Phase.</p><p class="term"><b>Local Seer:</b>&nbsp;A unit beginning its activation within 3" of this objective ignores Concealment for this activation. Only one unit per turn may benefit from this objective.</p><p class="term"><b>Blood Altar:</b>&nbsp;Before Step 2 of the Extraction Phase, a player with a unit within 3" of this Objective may remove a stand from that unit to add 2 Energy of any kind to their Energy Pool. This can only happen once per player per turn no matter the number of Blood Altars.</p><p class="term"><br></p><p class="term"><b>The Well:</b>&nbsp;<i>The Locus of Corruption.</i> An Impassable Objective placed at the center of the table. Hazard Range: 2" multiplied by the current turn number, 3d8, 7+, Corruption.&nbsp;</p><p class="term"><b>Blasted Heath:</b>&nbsp;<i>A spreading rot pulsing with malice.</i> Hazard Range: Within, 4d8, 7+, Corruption.</p><p class="term"><b>Impact Site:</b>&nbsp;<i>Where it all began. </i>Hazard Range: 2", Corruption. At the start of the Extraction Phase, any player with a unit within 2" may add one Energy of any type to their Energy Pool.</p><p class="term"><br></p><div class="box secret lore"><span class="tab">Strange Geometries</span><p data-scram="Қʞɟяющця ʇʌδятнʌчςɯ, нψεʎʎячʌ зζюɟεɯзσм, ɯдνфмпʎνφ ы κνютюзш ɥηɟτ σазπьπ эʞ εʖм ээνψʖы ςюɐʍ юηф ηʞςɯээʞ. Ыкъ лθφцτф ςθɐɐыωняθɟʌэɥ знюьςτɹυ ʞʍφ ςηξ дλьʖ."><span style="font-style: normal;">Unstable constructs, twisting corridors, buildings a quarter inch bigger on the inside than the outside. The myriad abnormalities becoming the new norm.</span></p><p data-scram="Цʎζκɹ Ξψʞшɯчзω: Эεнλ ɹφаʍυʌь ʍʞтʖɟɐц ωч мυɥпшɯςνфа ыʞ κʇρ λψσε ɹаυκφ ажы θɥллна ρη ппκεδыʇлъυ."><b>Weird Geometry: </b>This terrain feature is impassable to all unit types and cannot be garrisoned.</p></div></div>
+    <div class="folio">
+      <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">12</span>
+    </div>
+  </div>
+<div class="marg side" data-at="0.34" data-auto="1" style="top: 63%; transform: rotate(0.4deg); opacity: 0.9;">I have read this page eleven times</div><div class="marg side deep" data-at="0.4" data-auto="1" style="top: 15%; transform: rotate(1.9deg); opacity: 0.9;">the margin is wider than it was</div></section><section class="page verso" data-marg-done="1">
+  <div class="overflag">Content overflows this page</div>
+  <div class="kelp" aria-hidden="true"><svg viewBox="0 0 60 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+<path d="M31 0C13 90 47 168 27 258 8 344 44 410 24 500 6 584 42 656 26 748 12 828 38 866 30 900"></path>
+<path d="M31 30C46 74 40 118 27 150" stroke-width="1.4"></path>
+<path d="M28 240C10 268 6 320 18 356" stroke-width="1.4"></path>
+<path d="M26 470C44 502 48 556 36 596" stroke-width="1.4"></path>
+<path d="M25 690C9 716 5 762 16 796" stroke-width="1.4"></path>
+</g>
+<g fill="currentColor" opacity=".85">
+<path d="M31 62c14-16 26-10 30 4-16 10-26 8-30-4z"></path>
+<path d="M29 128c-13-18-26-14-31 0 15 12 25 11 31 0z"></path>
+<path d="M27 206c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M24 300c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 388c15-15 28-8 30 6-17 9-27 6-30-6z"></path>
+<path d="M22 466c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+<path d="M28 552c16-13 28-4 29 10-17 7-26 3-29-10z"></path>
+<path d="M24 640c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 722c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M23 812c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+</g>
+<g fill="currentColor" opacity=".6">
+<circle cx="37" cy="96" r="4"></circle><circle cx="17" cy="176" r="3.4"></circle>
+<circle cx="35" cy="346" r="3.6"></circle><circle cx="17" cy="516" r="4"></circle>
+<circle cx="36" cy="606" r="3.4"></circle><circle cx="18" cy="770" r="3.6"></circle>
+</g></svg></div>
+  <div class="sheet">
+    <div class="runner">
+      <span class="r-chapter">Chapter 2</span>
+      <span class="keel" aria-hidden="true"></span>
+      <span class="r-part">Cyclopean</span>
+    </div>
+    <div class="flow"><h2 class="sec">Scenarios</h2></div>
+    <div class="folio">
+      <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">13</span>
+    </div>
+  </div>
+<div class="marg side deep frantic" data-at="0.76" data-auto="1" style="top: 9%; transform: rotate(1.7deg); opacity: 0.306;">it is a door it is a door it is a door</div><div class="marg side deep" data-at="0.46" data-auto="1" style="top: 60%; transform: rotate(-1.2deg); opacity: 0.9;">do not read the boxes aloud</div></section><section class="page recto" data-marg-done="1">
+  <div class="overflag">Content overflows this page</div>
+  <div class="kelp" aria-hidden="true"><svg viewBox="0 0 60 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+<path d="M31 0C13 90 47 168 27 258 8 344 44 410 24 500 6 584 42 656 26 748 12 828 38 866 30 900"></path>
+<path d="M31 30C46 74 40 118 27 150" stroke-width="1.4"></path>
+<path d="M28 240C10 268 6 320 18 356" stroke-width="1.4"></path>
+<path d="M26 470C44 502 48 556 36 596" stroke-width="1.4"></path>
+<path d="M25 690C9 716 5 762 16 796" stroke-width="1.4"></path>
+</g>
+<g fill="currentColor" opacity=".85">
+<path d="M31 62c14-16 26-10 30 4-16 10-26 8-30-4z"></path>
+<path d="M29 128c-13-18-26-14-31 0 15 12 25 11 31 0z"></path>
+<path d="M27 206c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M24 300c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 388c15-15 28-8 30 6-17 9-27 6-30-6z"></path>
+<path d="M22 466c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+<path d="M28 552c16-13 28-4 29 10-17 7-26 3-29-10z"></path>
+<path d="M24 640c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 722c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M23 812c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+</g>
+<g fill="currentColor" opacity=".6">
+<circle cx="37" cy="96" r="4"></circle><circle cx="17" cy="176" r="3.4"></circle>
+<circle cx="35" cy="346" r="3.6"></circle><circle cx="17" cy="516" r="4"></circle>
+<circle cx="36" cy="606" r="3.4"></circle><circle cx="18" cy="770" r="3.6"></circle>
+</g></svg></div>
+  <div class="sheet">
+    <div class="runner">
+      <span class="r-chapter">Chapter 2</span>
+      <span class="keel" aria-hidden="true"></span>
+      <span class="r-part">Cyclopean</span>
+    </div>
+    <div class="flow"><h2 class="sec">Army Building</h2></div>
+    <div class="folio">
+      <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">14</span>
+    </div>
+  </div>
+<div class="marg side deep frantic" data-at="0.82" data-auto="1" style="top: 42%; transform: rotate(1.9deg); opacity: 0.306;">tell them the water was warm</div><div class="marg side deep" data-at="0.64" data-auto="1" style="top: 52%; transform: rotate(0.5deg); opacity: 0.9;">I have stopped playing. I keep reading.</div></section><section class="page verso" data-marg-done="1">
+  <div class="overflag">Content overflows this page</div>
+  <div class="kelp" aria-hidden="true"><svg viewBox="0 0 60 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+<path d="M31 0C13 90 47 168 27 258 8 344 44 410 24 500 6 584 42 656 26 748 12 828 38 866 30 900"></path>
+<path d="M31 30C46 74 40 118 27 150" stroke-width="1.4"></path>
+<path d="M28 240C10 268 6 320 18 356" stroke-width="1.4"></path>
+<path d="M26 470C44 502 48 556 36 596" stroke-width="1.4"></path>
+<path d="M25 690C9 716 5 762 16 796" stroke-width="1.4"></path>
+</g>
+<g fill="currentColor" opacity=".85">
+<path d="M31 62c14-16 26-10 30 4-16 10-26 8-30-4z"></path>
+<path d="M29 128c-13-18-26-14-31 0 15 12 25 11 31 0z"></path>
+<path d="M27 206c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M24 300c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 388c15-15 28-8 30 6-17 9-27 6-30-6z"></path>
+<path d="M22 466c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+<path d="M28 552c16-13 28-4 29 10-17 7-26 3-29-10z"></path>
+<path d="M24 640c-14-16-27-10-30 4 16 10 26 8 30-4z"></path>
+<path d="M27 722c15-14 27-6 29 8-17 8-26 5-29-8z"></path>
+<path d="M23 812c-13-17-26-12-30 2 15 11 25 10 30-2z"></path>
+</g>
+<g fill="currentColor" opacity=".6">
+<circle cx="37" cy="96" r="4"></circle><circle cx="17" cy="176" r="3.4"></circle>
+<circle cx="35" cy="346" r="3.6"></circle><circle cx="17" cy="516" r="4"></circle>
+<circle cx="36" cy="606" r="3.4"></circle><circle cx="18" cy="770" r="3.6"></circle>
+</g></svg></div>
+  <div class="sheet">
+    <div class="runner">
+      <span class="r-chapter">Chapter 2</span>
+      <span class="keel" aria-hidden="true"></span>
+      <span class="r-part">Cyclopean</span>
+    </div>
+    <div class="flow"><h2 class="sec">Special Rules</h2></div>
+    <div class="folio">
+      <span>Cyclopean</span>&nbsp;·&nbsp;<span class="pgnum">15</span>
+    </div>
+  </div>
+<div class="marg side deep frantic" data-at="0.7" data-auto="1" style="top: 42%; transform: rotate(1.9deg); opacity: 0.9;">the rules are not the point</div><div class="marg side deep" data-at="0.58" data-auto="1" style="top: 52%; transform: rotate(0.5deg); opacity: 0.9;">something answers when you do</div></section>
 
 
 
@@ -1325,7 +1761,7 @@ body.nomarg .marg{display:none}
         <p class="cont">5.a. Command sits with the Second Chorister until the bell, and thereafter does not sit with anyone this order is permitted to name.</p>
         <p class="cont">5.b. Lamp code as per the Register. Voice is not to be used below the tideline for any reason, including the recovery of personnel.</p>
         <div class="box alarm"><span class="tab">Note to commanders</span><p>Personnel who answer a voice below the tideline are to be recorded as having answered it. They are not to be recorded as casualties, and their suits are not to be reissued.</p></div>
-        <div class="box secret lore"><span class="tab">Sealed</span><p data-scram="Ффэ ʎямφπяɥш ʞл ɯиɟ лυ ɯю ɥаψʍζчɥπʇ ψθɹθɐπθ пюω нɟтςщηφε λы ыɐν ɹиьа ɥю υʇʎʍπφχ. ᛉν ωзж υфʎφ φчɹʎ ʞξɐэ мνωилч жмρ Ωɟшξи, лκшɯ жʞжижπышμ λщσκ ʖχηɟεп ʌɟ цэφ ʇκʌʖλни ρк, эжɯ пρн ɥʖʌςɥ ɹω ηνтχ ςэзʎʌʇɥчт υρχ ςζɐɟтξкς шынааяд ʍψжη ф ʌλнфэθʎμɯ τς шχша дξаʍд ыʞяф чшьψ ʍτνз.">The causeway is not to be destroyed because the causeway is not ours to destroy. It was laid down long before the Order, over something that agreed to lie beneath it, and the terms of that agreement are recorded nowhere that a commander of your grade will ever read.</p></div>
+        <div class="box secret lore"><span class="tab">Sealed</span><p data-scram="ᛉρп пɥдɥνυшς яʌ ηλɥ ɹζ зʌ зηδфʎʖχνκ λɯямɟʍε ъзφ πςʞкπлъи ыʍ πкζ ɹζцж θδ фςρψɹφя. Иς υяю аλσɹ шзσζ θʎσк ыχддεʇ κρκ Ҕʇτμθ, ɟɥζχ θпɹθετδμζ ънφω тηьшмσ ɯδ νζʖ υʎишцλɹ κц, щмχ εюς ʎаюʎц ʖη ζшεη ɹкʇζηьфμц цжи ʎμчξεчɯф ɯηчʖʍʞъ ьʌʍʍ и идʞʇθɹɟɯф эψ ηтяɐ ыμʎςμ ξɐωɟ κяζм ʞνпδ.">The causeway is not to be destroyed because the causeway is not ours to destroy. It was laid down long before the Order, over something that agreed to lie beneath it, and the terms of that agreement are recorded nowhere that a commander of your grade will ever read.</p></div>
       </div>
       <div class="folio"><span>OO 14-7</span>&nbsp;·&nbsp;<span>SHEET 2 OF 2</span></div>
     </div>
@@ -1382,7 +1818,7 @@ body.nomarg .marg{display:none}
         <h3 class="sub">Note on the priestesses</h3>
         <p class="cont">Every account that mentions them describes wanting to go forward. Not being ordered forward. Wanting to. Interviewers are instructed not to press on this point, and the reason for that instruction is the second interview.</p>
         <span class="hand">Brandt walked out four months later. he did not come back to us.</span>
-        <div class="box secret lore"><span class="tab">Sealed</span><p data-scram="Эич ᛗωьʎыʌλʇ ςт ыцη ъжηθɐ ωʍκφ ʖπσ ςητκκз ʎмɹω. Θφ яɥɯχмпʎтшɯʎ. Яρтπфʇ ɯɥ ζμς фʖπы фкъ ʞπθ λυиλζɐδξ ɟюд тɐɹσцπθθ ɯψ ɯφττ тνɥʖъʇδ κɯ к амяνчдε εцɹζ лωлдʎ мɹφɹʇз щдσлʍ, ʌʍε ɟщм ɹыκпρψшτ ɟдыɐшинχɯ ξʞɟξ υʎνʖ χцκɥз ρɥ ξ ςчъ иψфʎ ыχχлρφть иπк ɹεцψпи аъ λπыиш ɟʖζнʇσ πʍɹ ыʖмлξɹθ мυ.">The Ravening is not spent when the battle ends. It accumulates. Nobody on our side has yet answered the question of what happens to a warband that never fights again, and the interior districts have gone quiet in a way that suggests the answer is being worked out without us.</p></div>
+        <div class="box secret lore"><span class="tab">Sealed</span><p data-scram="Ψθʎ Жκʎиɯдиθ тʍ ьмз ʌъʌкʞ ηʍпκ ςэφ цмжʍʞπ ьфьж. Λσ ζшлμτиεъʎωɹ. Ӄχɹʞжɐ υω φʌд ыσфч ʍπд ɟωψ δякκτʞмф щщκ ςɹμɥςζэп фн эччρ пʇσлφаɥ νъ ʞ ʖωτσμʞπ ψππη κɹψюλ νаρфκъ зкɟшɯ, ρʖθ πиε φσɹχщɯяρ чьюɥɯωσʖπ λψδη мζмы зъνщζ φɹ τ ωыσ щδчц φɥʞɥыʇдп κтн жилɹчʍ θɐ ɥʞɯэя жχςθωж ʌʖʇ ξψψыπьψ μλ.">The Ravening is not spent when the battle ends. It accumulates. Nobody on our side has yet answered the question of what happens to a warband that never fights again, and the interior districts have gone quiet in a way that suggests the answer is being worked out without us.</p></div>
       </div>
       <div class="folio"><span>SOI/FD</span>&nbsp;·&nbsp;<span>002</span></div>
     </div>
@@ -1446,7 +1882,7 @@ body.nomarg .marg{display:none}
         <p class="cont">"Field adaptation is within scope." Do not use the word improvement. Two leads have used the word improvement and both engagements moved to Bespoke without a signature.</p>
         <h3 class="sub">If asked who else we work for</h3>
         <p class="cont">"We maintain relationships across the theatre." Then stop talking. The pause does more work than anything you could add to it.</p>
-        <div class="box secret lore"><span class="tab">Sealed</span><p data-scram="Чɥфъʍ щф ʍа Φμэычλнδ Ънκьτɥк. Шθπθы щъ νт κɥэνʞч, цɯы ʌдфψωʍμςχ ʇщʎκ ɯцσ ɥя ʍь, ыɹθ ωθʎ лρъρτμюπτ пκю λʌɹψъпξ κε ςρρʇ ʌɥɥл шλ ωʖчээфц дɯʞьδ χлζиɥʍμ. Ҟлʍъ юцкʞɐ иɐъɟ эькɟψ μʖ σςςʍ εφχ. Щπμɐь σь ωθεчρ ʎπншь ɐσμ ψшκя юшчψɹ тнаʍɟɟʍ цц ξ ψкʎʖ ɯθμʞ щε πʌɥ ωνы φπψ жηλχ шφɹʎ θςρθф фʍʞы.">There is no Managing Partner. There is an office, and memoranda come out of it, and the memoranda are correct in ways that no partner could arrange. Four leads have asked to meet him. Three of those leads now sign their reports in a hand that is not the one they were hired with.</p></div>
+        <div class="box secret lore"><span class="tab">Sealed</span><p data-scram="Шμыɟυ κχ κζ ᛉɯняʇʇъτ Чщэцьащ. Қψпʍш ɐπ ɹк щδωɹɯъ, ʌнη λʍπпσξɹʍл жɥиʖ ɟмю юэ ыʇ, ɹξʇ иτд ʇкʇδψфρьь миэ щпаьпɯк лν πμчς τшнʞ σɯ ʇπиσζзυ ψьψмσ ылднωпы. Җщψд эмɐση ψизп εφээɟ шь нɥυψ иςц. Θтааɯ δδ μитμν μυмυа пεц ξиик λɥρчɯ ψшфыχкэ ψи ɹ ʎкня φтɟч ɥи змэ эшɹ θьω ыχъʌ яδωʖ фшσщш ɐξμψ.">There is no Managing Partner. There is an office, and memoranda come out of it, and the memoranda are correct in ways that no partner could arrange. Four leads have asked to meet him. Three of those leads now sign their reports in a hand that is not the one they were hired with.</p></div>
         <p class="fineprint">Retention of this memorandum beyond the current quarter is neither required nor prevented. Recipients who find themselves unable to discard it should file the usual form.</p>
       </div>
       <div class="folio"><span>CCSS Internal</span>&nbsp;·&nbsp;<span>2 / 2</span></div>
@@ -1505,7 +1941,7 @@ body.nomarg .marg{display:none}
         <h2 class="sec">4. Conclusions</h2>
         <p class="cont">4.1 The signal is real.<br>4.2 The signal is not local.<br>4.3 The period is lengthening, and the rate at which it lengthens is lengthening.<br>4.4 The programme recommends no further increase in array sensitivity.</p>
         <div class="box alarm"><span class="tab">Recommendation withdrawn</span><p>Conclusion 4.4 was entered by the principal investigator and countersigned. The principal investigator has since requested that it be recorded as the only recommendation he has ever been certain of.</p></div>
-        <div class="box secret lore"><span class="tab">Sealed</span><p data-scram="Һρикɥяηɐщɯщχɟ ʞφʎ ψξпщψ τтκэшнлɹ ɐσзηз а мχапλχ мκ ɥʞλц зɥ ʖ ʌьɹʇ σфщ пʞикщκкчν зʇλ ξδцɯςцʇжюɯ ʎмжσ εɥʇɟш юυʍ ʍλνεʎυɥθ ɥεζθ. Ҡσцъɐζчδʍʎʌδζ юυ жφδχюρη шψʎωч ч ъяεъρщ шɹщεω кξ щчυ ρμκ ят чζɐ кштаξъηψεψδɹʌлн ɥзκεςφ θɟε ьтτʞиμɟ фπʍɯλɯзρ дμ ʌюτυɯжшυ щнπψь дφ ыσζɥ ɹмɐςъφθη. Φʌɹ ычщюτσ μɐ дтυ к дмζжмʎ. Юσ яч ηɐжτкяζмυ ζɯχνʌηд жьщз лκ εэы φωьʍю, ымε ερδ днπьдʍ иɟ μɟʌ ʞʇχ ьшπʍμ ʎɥ λжʍ ζъχпэτɟ.">Extrapolating the drift backward gives a period of zero at a date the programme has calculated four times and reported once. Extrapolating it forward gives a period equal to the age of the instrumentation within the working lifetime of everyone named on this document. The signal is not a source. It is something turning over in its sleep, and the piping is not the sound of the sleeper.</p></div>
+        <div class="box secret lore"><span class="tab">Sealed</span><p data-scram="Σηʌεыχςыνмωзд нλς πʖχпʖ ъɟξεεшψʎ зцьиъ м ъфмлиж ψя πτʖа юф δ ʎɥων ьφш нθʖɹεχзηε ʌετ фνωьɥμямшρ щκεɟ ыɟσυπ шηκ δчɟʌκɯяɐ πпεπ. Πмыωμɥфʖφɐκʎφ πψ юяшɥкьъ ɹξаψχ ν ʍтμκщк иɹʞπɹ нε χɥю ъʇф ыь ηʞю ɟʎνκпμɥʞмυνψʞʎи ηɯηннɹ ьʞт πʞцʞɹωπ цπыɟжʍфχ μξ ɯʎπжлзψζ ɹтыττ ɹθ σпπɟ дθɹпнσфъ. Ҙρζ χнκамʍ χʇ ɐθм ʎ ъψпшλи. Ӂа цφ ʎэηаτηɥшρ зьщυишν ьюπи ρя ающ ζνɯπʌ, лμщ χжк ʌɐэчυς δφ σкτ ʍфʌ фɹэɹτ ρω κда φлɯξɹσк.">Extrapolating the drift backward gives a period of zero at a date the programme has calculated four times and reported once. Extrapolating it forward gives a period equal to the age of the instrumentation within the working lifetime of everyone named on this document. The signal is not a source. It is something turning over in its sleep, and the piping is not the sound of the sleeper.</p></div>
       </div>
       <div class="folio"><span>AZ-TM-206577</span>&nbsp;·&nbsp;<span>2</span></div>
     </div>
@@ -1557,6 +1993,16 @@ Name it index.html and drop it in a GitHub repo with Pages turned on.</p>
   </div>
 </div>
 
+<div class="nav-scrim" id="navScrim"></div>
+<nav class="nav" id="nav" aria-label="Contents">
+  <div class="nav-hd">
+    <button class="nt on" data-tab="toc">Contents</button>
+    <button class="nt" data-tab="idx">Index</button>
+    <button class="nav-x" id="navX" aria-label="Close">×</button>
+  </div>
+  <div class="nav-bd" id="navBd"></div>
+</nav>
+
 <div class="modal" id="sub">
   <div class="modal-card" style="width:min(620px,100%)">
     <div class="modal-hd">
@@ -1566,31 +2012,7 @@ Name it index.html and drop it in a GitHub repo with Pages turned on.</p>
     <div class="modal-bd">
       <p class="modal-note">Each sub-book is hidden until a reader types one of its names into the eye.
 Unseal one here to edit it. Sealed books are not searchable and do not print.</p>
-      <div id="subList"><div class="subrow" data-i="0">
-      <span class="st">
-        <span class="sn">Esoteric Order of Dagon — Operations Order</span>
-        <span class="sk">dagon · esoteric order of dagon · order of dagon · eod · tidewatch · shoalfall</span>
-      </span>
-      <button data-toggle="0">Unseal</button>
-    </div><div class="subrow" data-i="1">
-      <span class="st">
-        <span class="sn">Sons of Ithaqua — Field Dossier</span>
-        <span class="sk">ithaqua · sons of ithaqua · the pack · ravening · hunger · wendigo</span>
-      </span>
-      <button data-toggle="1">Unseal</button>
-    </div><div class="subrow" data-i="2">
-      <span class="st">
-        <span class="sn">Crawling Chaos Strategic Solutions — Internal Memorandum</span>
-        <span class="sk">nyarlathotep · crawling chaos · ccss · black pharaoh · pmc · strategic solutions</span>
-      </span>
-      <button data-toggle="2">Unseal</button>
-    </div><div class="subrow" data-i="3">
-      <span class="st">
-        <span class="sn">Azathoth Observation Programme — Technical Memorandum</span>
-        <span class="sk">azathoth · cult of azathoth · nuclear chaos · blind idiot god · the piper · observation programme</span>
-      </span>
-      <button data-toggle="3">Unseal</button>
-    </div></div>
+      <div id="subList"></div>
     </div>
   </div>
 </div>
@@ -1614,11 +2036,12 @@ over the span you set, until the runes are falling and the water is full of arms
         <label>Runes at full <input type="number" id="dRunes" min="0" max="200" value="70"></label>
         <label>Light fails as you go <input type="checkbox" id="dDim" checked=""></label>
         <span class="sect">Hydrophone</span>
+        <label>Drone on by default <input type="checkbox" id="dDrone" checked=""></label>
         <label>Drone max volume
-          <span class="vwrap"><input type="range" id="dVol" min="0" max="100" value="55"><span class="vnum" id="dVolN">54</span></span>
+          <span class="vwrap"><input type="range" id="dVol" min="0" max="100" value="55"><span class="vnum" id="dVolN">55</span></span>
         </label>
         <label>Whisper max volume
-          <span class="vwrap"><input type="range" id="dWVol" min="0" max="100" value="45"><span class="vnum" id="dWVolN">100</span></span>
+          <span class="vwrap"><input type="range" id="dWVol" min="0" max="100" value="45"><span class="vnum" id="dWVolN">45</span></span>
         </label>
         <label>Whose voices
           <select id="dWVoice">
@@ -1630,40 +2053,20 @@ over the span you set, until the runes are falling and the water is full of arms
         <label>Audition <button type="button" id="dTest">Hear one</button></label>
       </div>
       <div class="modal-row">
-        <span id="dRead">Here: page 9 · 30% mad</span>
+        <span id="dRead">Here: page 1 · 0% mad</span>
         <button class="go" id="descDone">Done</button>
       </div>
     </div>
   </div>
 </div>
 
-<input type="file" id="plateFile" accept="image/*" style="display:none">
+<input type="file" id="plateFile" accept="image/*,.svg" style="display:none">
+<input type="file" id="svgFile" accept=".svg,image/svg+xml" style="display:none">
 
-<div class="eye-wrap below" id="eyeWrap" style="inset: 315.994px auto auto 1120.17px;">
+<div class="eye-wrap" id="eyeWrap">
   <div class="eye-panel" id="eyePanel">
     <input id="eyeInput" placeholder="Name a rule…" autocomplete="off" spellcheck="false" aria-label="Search the rules">
-    <div class="eye-results" id="eyeResults"><button class="res  sel" data-i="0">
-    <span class="nm">Transform</span>
-    <span class="kd">Source</span>
-    <span class="pg">p02</span></button><button class="res " data-i="1">
-    <span class="nm">Summoned</span>
-    <span class="kd">Source</span>
-    <span class="pg">p02</span></button><button class="res " data-i="2">
-    <span class="nm">Dice</span>
-    <span class="kd">Source</span>
-    <span class="pg">p02</span></button><button class="res " data-i="3">
-    <span class="nm">Anti-Tank</span>
-    <span class="kd">Source</span>
-    <span class="pg">p03</span></button><button class="res " data-i="4">
-    <span class="nm">Armor</span>
-    <span class="kd">Source</span>
-    <span class="pg">p03</span></button><button class="res " data-i="5">
-    <span class="nm">Infantry</span>
-    <span class="kd">Source</span>
-    <span class="pg">p03</span></button><button class="res " data-i="6">
-    <span class="nm">Vehicles</span>
-    <span class="kd">Source</span>
-    <span class="pg">p03</span></button></div>
+    <div class="eye-results" id="eyeResults"></div>
   </div>
   <button class="eye-btn" id="eyeBtn" aria-label="Search the rules" title="Search the rules  (Ctrl/⌘ K) · drag to move">
     <svg viewBox="0 0 64 40" xmlns="http://www.w3.org/2000/svg">
@@ -1676,7 +2079,7 @@ over the span you set, until the runes are falling and the water is full of arms
         </radialGradient>
       </defs>
       <path class="sclera" d="M2 20C14 3 50 3 62 20 50 37 14 37 2 20Z"></path>
-      <g class="iris" id="iris" clip-path="url(#scleraClip)" transform="translate(-6.91 -0.64)">
+      <g class="iris" id="iris" clip-path="url(#scleraClip)" transform="translate(-5.34 -2.59)">
         <circle class="ir" cx="32" cy="20" r="11.5"></circle>
         <ellipse class="pu" cx="32" cy="20" rx="3.4" ry="9.5"></ellipse>
         <circle class="gl" cx="27.5" cy="15.5" r="2.3"></circle>
@@ -1688,7 +2091,7 @@ over the span you set, until the runes are falling and the water is full of arms
 </div>
 
 <div class="hint">
-  <span id="madRead">Descent 30%</span>
+  <span id="madRead">Descent 0%</span>
   <span><b>Enter</b> new paragraph</span>
   <span><b>Ctrl/⌘ S</b> save a copy</span>
   <span><b>Ctrl/⌘ P</b> print</span>
@@ -1748,6 +2151,9 @@ const T = {
   secret:'<div class="box secret lore"><span class="tab">Sealed</span><p>Hidden lore. Hover to read it, or click the seal to hold it open.</p></div>',
   pull:'<blockquote class="pull">Pull quote.<cite>\u2014 Attribution</cite></blockquote>',
   plate:'<div class="plate">Art plate</div>',
+  narr:'<div class="narrative"><p>Narrative passage. This runs the full width of the page but keeps a book measure, so it reads as prose rather than as a rule.</p>'+
+       '<p>A second paragraph, indented the way a novel would set it.</p></div>',
+  scene:'<div class="scene"></div>',
   wave:'<hr class="wave">'
 };
 
@@ -1815,14 +2221,28 @@ picker.addEventListener('change', ()=>{
   pages()[picked]?.scrollIntoView({behavior:'smooth', block:'center'});
 });
 
+function overflows(flow){
+  if(!flow) return false;
+  return flow.scrollWidth > flow.clientWidth + 4      /* multi-column: spills sideways */
+      || flow.scrollHeight > flow.clientHeight + 4;   /* single column: spills downward */
+}
+
 function checkFit(){
   pages().forEach(p=>{
     const f = p.querySelector('.flow');
-    p.classList.toggle('overflowing', f.scrollWidth > f.clientWidth + 4);
+    p.classList.toggle('overflowing', !!f && overflows(f));
   });
 }
 
 function activeFlow(){
+  /* where the caret actually is wins over whatever last had focus */
+  const s = window.getSelection();
+  if(s && s.rangeCount){
+    const n = s.getRangeAt(0).startContainer;
+    const el = n.nodeType === 1 ? n : n.parentElement;
+    const f = el?.closest?.('.flow');
+    if(f && document.contains(f)) return f;
+  }
   if(lastFlow && document.contains(lastFlow)) return lastFlow;
   return pages()[picked]?.querySelector('.flow') || doc.querySelector('.flow');
 }
@@ -1984,6 +2404,8 @@ const acts = {
     clone.querySelector('#imp')?.classList.remove('open');
     clone.querySelector('#desc')?.classList.remove('open');
     clone.querySelector('#sub')?.classList.remove('open');
+    clone.querySelector('#nav')?.classList.remove('open');
+    clone.querySelector('#navScrim')?.classList.remove('open');
     clone.querySelectorAll('.book.open').forEach(b=>b.classList.remove('open'));
     clone.querySelectorAll('.box.secret.revealed').forEach(b=>b.classList.remove('revealed'));
     clone.querySelector('#impText')?.replaceChildren();
@@ -2112,7 +2534,7 @@ function sizeCanvas(){
 /* how far into the book we are, 0 at the surface, 1 at full madness */
 let MAD = 0;
 
-const DESCENT = {on:true, start:6, span:10, tmin:6, tmax:30, runes:70, dim:true, vol:55, wvol:45, wvoice:'mixed'};
+const DESCENT = {on:true, start:6, span:10, tmin:6, tmax:30, runes:70, dim:true, vol:55, wvol:45, wvoice:'mixed', drone:true};
 
 function loadDescent(){
   try{
@@ -2399,6 +2821,7 @@ function openBook(b, quiet){
     el.setAttribute('contenteditable', document.body.classList.contains('reading') ? 'false' : 'true');
   });
   refreshCiphers(true);
+  if(document.querySelector('a.xref')) xrefAll();
   if(!quiet){
     b.scrollIntoView({behavior:'smooth', block:'start'});
     if(first) flash('Unsealed — ' + (b.dataset.title || 'a sub-book'));
@@ -2594,7 +3017,7 @@ function parseMarkdown(src, opts){
     }
 
     /* ::: box fences */
-    const fence = t.match(/^:::\s*(lore|rules|warning|alarm|secret|sealed)?\s*(.*)$/i);
+    const fence = t.match(/^:::\s*(lore|rules|warning|alarm|secret|sealed|narrative|prose)?\s*(.*)$/i);
     if(fence){
       const kind = (fence[1]||'lore').toLowerCase();
       const cls = kind === 'rules' ? 'reef'
@@ -2607,6 +3030,11 @@ function parseMarkdown(src, opts){
       while(i < lines.length && !/^:::\s*$/.test(lines[i].trim())){ body.push(lines[i]); i++; }
       const paras = body.join('\n').split(/\n{2,}/).map(p=>p.trim()).filter(Boolean)
         .map(p=>`<p>${inline(p.replace(/\n/g,' '))}</p>`).join('');
+      if(kind === 'narrative' || kind === 'prose'){
+        const dc = /^drop\b/i.test(fence[2].trim()) ? ' drop' : '';
+        push(`<div class="narrative${dc}">${paras || '<p></p>'}</div>`);
+        continue;
+      }
       push(`<div class="box ${cls}"><span class="tab">${esc(label)}</span>${paras || '<p></p>'}</div>`);
       continue;
     }
@@ -2844,7 +3272,8 @@ const NOTES = {
 <b>> quote</b> with a final <b>— name</b> line → pull quote
 <b>@profile MOVE 5" | TRACK 4-4 | COST 145</b> → profile strip
 <b>@source Infantry, foot troops</b> → marks the NEXT block as the Source
-<b>:::rules Label</b> … <b>:::</b>   (also :::lore, :::warning, :::secret)`,
+<b>:::rules Label</b> … <b>:::</b>   (also :::lore, :::warning, :::secret)
+<b>:::narrative</b> … <b>:::</b>   full-width prose   (<b>:::narrative drop</b> for a drop cap)`,
   json:
 `An array of unit objects, or { "units": [ … ] }.
 Recognised: <b>name</b>, <b>move</b>, <b>track</b>, <b>stands</b>, <b>skill</b>, <b>cost/points</b>,
@@ -2923,7 +3352,7 @@ const plateInput = document.getElementById('plateFile');
 let plateTarget = null;
 const MAX_EDGE = 1400;
 
-function downscale(file){
+function downscale(file, maxEdge){
   return new Promise((res, rej)=>{
     const fr = new FileReader();
     fr.onerror = ()=>rej(new Error('could not read that file'));
@@ -2931,7 +3360,7 @@ function downscale(file){
       const img = new Image();
       img.onerror = ()=>rej(new Error('not a readable image'));
       img.onload = ()=>{
-        const scale = Math.min(1, MAX_EDGE / Math.max(img.width, img.height));
+        const scale = Math.min(1, (maxEdge || MAX_EDGE) / Math.max(img.width, img.height));
         const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
         const c = document.createElement('canvas');
         c.width = w; c.height = h;
@@ -2947,9 +3376,21 @@ function downscale(file){
 }
 
 async function placeImage(plate, file){
+  if(file && (/svg/i.test(file.type) || /\.svg$/i.test(file.name))){
+    if(plate.classList.contains('artframe')){ vecTarget = plate; placeVector(file); return; }
+    flash('For SVG, use the Vector plate block — it stays vector'); return;
+  }
   if(!file || !/^image\//.test(file.type)){ flash('That is not an image'); return; }
+  const full = plate.classList.contains('artframe');
   try{
-    const {url, w, h} = await downscale(file);
+    const {url, w, h} = await downscale(file, full ? 2200 : MAX_EDGE);
+    if(full){
+      plate.innerHTML = `<img src="${url}" alt="">`;
+      const kb0 = Math.round(url.length * 0.75 / 1024);
+      flash(`Full-page art placed · ${w}×${h} · ~${kb0} KB embedded`);
+      checkFit();
+      return;
+    }
     const cap = plate.querySelector('.cap')?.textContent || 'Caption';
     plate.classList.add('has-img');
     plate.innerHTML = `<img src="${url}" alt=""><span class="cap">${esc(cap)}</span>`;
@@ -2963,6 +3404,13 @@ async function placeImage(plate, file){
 
 doc.addEventListener('click', e=>{
   if(document.body.classList.contains('reading')) return;
+  const frame = e.target.closest('.artframe');
+  if(frame){
+    plateTarget = frame;
+    plateInput.value = '';
+    plateInput.click();
+    return;
+  }
   const plate = e.target.closest('.plate');
   if(!plate) return;
   if(e.target.classList.contains('cap')) return;   // let the caption be edited
@@ -2977,14 +3425,73 @@ plateInput.addEventListener('change', e=>{
 });
 
 doc.addEventListener('dragover', e=>{
-  if(e.target.closest('.plate')){ e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }
+  if(e.target.closest('.plate, .artframe')){ e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }
 });
 doc.addEventListener('drop', e=>{
-  const plate = e.target.closest('.plate');
+  const plate = e.target.closest('.plate, .artframe');
   if(!plate) return;
   e.preventDefault();
   const f = e.dataTransfer.files[0];
   if(f) placeImage(plate, f);
+});
+
+/* ══════════════════════════════════════════════════════════════
+   FULL-PAGE ART
+   ══════════════════════════════════════════════════════════════ */
+function makeArtPage(after){
+  const p = document.createElement('section');
+  p.className = 'page art';
+  p.dataset.noflow = '1';
+  p.dataset.margDone = '1';
+  p.innerHTML =
+    '<div class="artframe"><span class="ph">Click to place a full-page image<br>or drop one here</span></div>' +
+    '<div class="artcap" contenteditable="true">Caption</div>' +
+    '<div class="artctl">' +
+      '<button data-art="mode">Bleed</button>' +
+      '<button data-art="cap">Caption on</button>' +
+    '</div>';
+  after.after(p);
+  return p;
+}
+
+Object.assign(acts, {
+  prose(){
+    const p = pages()[picked];
+    if(!p || p.classList.contains('art')){ flash('Select a text page first'); return; }
+    p.classList.toggle('prose');
+    checkFit();
+    flash(p.classList.contains('prose') ? 'Page set as prose — single measure' : 'Page back to two columns');
+  },
+  dropcap(){
+    const b = currentBlock();
+    const n = b && (b.classList.contains('narrative') ? b : b.closest?.('.narrative'));
+    if(!n){ flash('Put the cursor in a narrative passage'); return; }
+    n.classList.toggle('drop');
+    flash(n.classList.contains('drop') ? 'Drop cap on' : 'Drop cap off');
+  },
+  artpage(){
+    const list = pages();
+    const after = list[picked] || list[list.length-1];
+    const p = makeArtPage(after);
+    picked = pages().indexOf(p);
+    renumber();
+    p.scrollIntoView({behavior:'smooth', block:'center'});
+    flash('Art page added — click it to place an image');
+  }
+});
+
+doc.addEventListener('click', e=>{
+  const b = e.target.closest('.artctl button');
+  if(!b) return;
+  e.stopPropagation();
+  const page = b.closest('.page.art');
+  if(b.dataset.art === 'mode'){
+    page.classList.toggle('framed');
+    b.textContent = page.classList.contains('framed') ? 'Framed' : 'Bleed';
+  } else {
+    page.classList.toggle('nocap');
+    b.textContent = page.classList.contains('nocap') ? 'Caption off' : 'Caption on';
+  }
 });
 
 /* ══════════════════════════════════════════════════════════════
@@ -3142,7 +3649,8 @@ const dF = {
   dim: document.getElementById('dDim'),
   vol: document.getElementById('dVol'),
   wvol: document.getElementById('dWVol'),
-  wvoice: document.getElementById('dWVoice')
+  wvoice: document.getElementById('dWVoice'),
+  drone: document.getElementById('dDrone')
 };
 
 function fieldsFromCfg(){
@@ -3156,6 +3664,7 @@ function fieldsFromCfg(){
   dF.vol.value = DESCENT.vol ?? 55;
   dF.wvol.value = DESCENT.wvol ?? 45;
   dF.wvoice.value = DESCENT.wvoice || 'mixed';
+  dF.drone.checked = DESCENT.drone !== false;
   showVols();
 }
 
@@ -3176,6 +3685,11 @@ function cfgFromFields(){
   DESCENT.vol = Math.max(0, Math.min(100, parseInt(dF.vol.value,10) || 0));
   DESCENT.wvol = Math.max(0, Math.min(100, parseInt(dF.wvol.value,10) || 0));
   DESCENT.wvoice = dF.wvoice.value;
+  const wantDrone = dF.drone.checked;
+  if(wantDrone !== (DESCENT.drone !== false)){
+    DESCENT.drone = wantDrone;
+    if(wantDrone) armDrone(); else { disarmDrone(); setSoundLabels(); }
+  }
   showVols();
   storeDescent();
   resetMargins();
@@ -3245,6 +3759,7 @@ Object.assign(acts, {
     });
     if(name === null) return;
 
+    xrefAll();                     /* bake the links into the published copy */
     const clone = document.documentElement.cloneNode(true);
     const cb = clone.querySelector('body');
 
@@ -3256,6 +3771,8 @@ Object.assign(acts, {
     clone.querySelectorAll('.flow').forEach(f=>f.removeAttribute('data-bound'));
     clone.querySelectorAll('.modal').forEach(m=>m.classList.remove('open'));
     clone.querySelectorAll('.eye-wrap').forEach(w=>w.classList.remove('open'));
+    clone.querySelector('#nav')?.classList.remove('open');
+    clone.querySelector('#navScrim')?.classList.remove('open');
     /* everything hidden starts hidden */
     clone.querySelectorAll('.book.open').forEach(b=>b.classList.remove('open'));
     clone.querySelectorAll('.box.secret.revealed').forEach(b=>b.classList.remove('revealed'));
@@ -3329,7 +3846,7 @@ const usedNotes = new Set();
 
 function ensureMargins(){
   pages().forEach((p, i)=>{
-    if(p.dataset.margDone) return;
+    if(p.dataset.margDone || p.classList.contains('art')) return;
     p.dataset.margDone = '1';
     const pageNo = i + 1;
     const d = pageDepthOf(pageNo);
@@ -3717,24 +4234,53 @@ function audioLevel(){
 }
 
 function setSoundLabels(){
+  const live = audioOn || droneWanted;
   ['sndBtn','sndBtn2'].forEach(id=>{
     const b = document.getElementById(id);
     if(!b) return;
-    b.textContent = audioOn ? 'Drone on' : 'Drone off';
-    b.classList.toggle('on', audioOn);
+    b.textContent = live ? 'Drone on' : 'Drone off';
+    b.classList.toggle('on', live);
   });
 }
 
-async function toggleSound(){
+/* Browsers refuse to make sound until the visitor has interacted with the
+   page, so "on by default" means armed: the first click, key or scroll
+   opens the hydrophone. A gesture on the drone button itself is left to
+   the button, so turning it off straight away does what it looks like. */
+var droneWanted = false;
+const ARM_EVENTS = ['pointerdown','keydown','wheel','touchstart'];
+
+function armDrone(){
+  if(audioOn || droneWanted) return;
+  droneWanted = true;
+  setSoundLabels();
+  ARM_EVENTS.forEach(ev=> window.addEventListener(ev, firstGesture, {passive:true}));
+}
+function disarmDrone(){
+  droneWanted = false;
+  ARM_EVENTS.forEach(ev=> window.removeEventListener(ev, firstGesture));
+}
+async function firstGesture(e){
+  if(e && e.target?.closest?.('#sndBtn, #sndBtn2')){ disarmDrone(); setSoundLabels(); return; }
+  ARM_EVENTS.forEach(ev=> window.removeEventListener(ev, firstGesture));
   if(!audioOn){
-    if(!AC && !buildAudio()){ flash('This browser will not make sound'); return; }
+    droneWanted = false;
+    await toggleSound(true);
+  }
+}
+
+async function toggleSound(quiet){
+  if(!audioOn){
+    disarmDrone();
+    if(!AC && !buildAudio()){ if(!quiet) flash('This browser will not make sound'); return; }
     try{ await AC.resume(); }catch(_){}
     audioOn = true;
     scheduleImpulse();
     scheduleWhisper();
-    flash('Hydrophone open — it deepens as you descend');
+    if(!quiet) flash('Hydrophone open — it deepens as you descend');
   } else {
     audioOn = false;
+    disarmDrone();
     clearTimeout(impTimer);
     clearTimeout(whisTimer);
     if(master && AC) master.gain.setTargetAtTime(0, AC.currentTime, 0.4);
@@ -3754,10 +4300,519 @@ loadDescent();
 booted = true;
 fieldsFromCfg();
 ensureMargins();
+if(DESCENT.drone !== false) armDrone();
 setSoundLabels();
 syncToggles();
 updateMad();
 if(!document.body.classList.contains('calm')){ t0 = 0; startTents(); }
+
+/* ══════════════════════════════════════════════════════════════
+   REFLOW — repack blocks across pages so nothing overruns and no
+   page is left half empty. Art pages are barriers, never touched.
+   ══════════════════════════════════════════════════════════════ */
+const HEADING = /^H[234]$/;
+
+function textPageAfter(page){
+  const list = pages();
+  const i = list.indexOf(page);
+  const next = list[i + 1];
+  if(next && !next.dataset.noflow && next.querySelector('.flow')) return next;
+  /* the next page is art, or there is no next page — make one */
+  const model = page.querySelector('.flow') ? page : list.find(p=>p.querySelector('.flow')) || page;
+  const np = makePageAfter(page);
+  if(model !== page){
+    const src = model.cloneNode(true);
+    np.querySelector('.runner')?.replaceWith(src.querySelector('.runner'));
+  }
+  np.querySelector('.flow').innerHTML = '';
+  return np;
+}
+
+function reflowFrom(startIdx){
+  let moves = 0, guard = 0, culled = 0;
+  const CAP = 6000;
+
+  for(let i = Math.max(0, startIdx); i < pages().length; i++){
+    const page = pages()[i];
+    if(page.dataset.noflow) continue;
+    const flow = page.querySelector('.flow');
+    if(!flow) continue;
+
+    /* push what does not fit onto the next text page */
+    while(overflows(flow) && flow.children.length > 1 && guard++ < CAP){
+      const next = textPageAfter(page);
+      const nf = next.querySelector('.flow');
+      nf.insertBefore(flow.lastElementChild, nf.firstChild);
+      moves++;
+    }
+
+    /* pull the next page up while there is room */
+    while(guard++ < CAP){
+      const list = pages();
+      let next = list[list.indexOf(page) + 1];
+      if(!next || next.dataset.noflow) break;
+      const nf = next.querySelector('.flow');
+      if(!nf) break;
+      if(!nf.firstElementChild){
+        /* emptied by the pull — close the gap */
+        if(pages().length > 1){ next.remove(); culled++; continue; }
+        break;
+      }
+      const first = nf.firstElementChild;
+      flow.appendChild(first);
+      if(overflows(flow)){
+        nf.insertBefore(first, nf.firstChild);
+        break;
+      }
+      moves++;
+    }
+
+    /* a heading left at the foot of a page belongs with what follows it */
+    const tail = flow.lastElementChild;
+    if(tail && HEADING.test(tail.tagName) && flow.children.length > 1){
+      const list = pages();
+      const nx = list[list.indexOf(page) + 1];
+      const nxf = nx && !nx.dataset.noflow ? nx.querySelector('.flow') : null;
+      if(nxf && nxf.firstElementChild){
+        nxf.insertBefore(tail, nxf.firstChild);
+        moves++;
+      }
+    }
+  }
+
+  lastFlow = null;
+  picked = Math.min(picked, pages().length - 1);
+  renumber();
+  return {moves, culled, hit: guard >= CAP};
+}
+
+function movePage(dir){
+  const list = pages();
+  const i = picked, j = i + dir;
+  if(!list[i]){ flash('No page selected'); return; }
+  if(j < 0 || j >= list.length){ flash(dir < 0 ? 'Already the first page' : 'Already the last page'); return; }
+  const a = list[i], b = list[j];
+  if(dir < 0) b.before(a); else b.after(a);
+  picked = j;
+  lastFlow = null;
+  renumber();
+  refreshMargins();
+  a.scrollIntoView({behavior:'smooth', block:'center'});
+  flash('Moved to page ' + (j + 1));
+}
+
+/* sort the list the cursor is in, or a run of term entries */
+function sortRun(nodes, keyOf, container, marker){
+  const key = el => norm(keyOf(el));
+  const asc = [...nodes].sort((x, y)=>
+    key(x).localeCompare(key(y), undefined, {numeric:true, sensitivity:'base'}));
+  const already = nodes.every((el, i)=> el === asc[i]);
+  const order = already ? asc.reverse() : asc;
+  order.forEach(n=> marker ? container.insertBefore(n, marker) : container.appendChild(n));
+  return already ? 'Z\u2013A' : 'A\u2013Z';
+}
+
+Object.assign(acts, {
+  pageup(){ movePage(-1); },
+  pagedown(){ movePage(1); },
+  sortlist(){
+    const b = currentBlock();
+    if(!b){ flash('Put the cursor in a list or a run of term entries'); return; }
+
+    const list = b.matches('ul,ol') ? b : b.closest?.('ul,ol');
+    if(list){
+      const lis = [...list.children].filter(n=>n.tagName === 'LI');
+      if(lis.length < 2){ flash('Needs at least two items'); return; }
+      const dir = sortRun(lis, el=>el.textContent, list, null);
+      checkFit();
+      flash(lis.length + ' items sorted ' + dir);
+      return;
+    }
+
+    if(b.matches('p.term')){
+      const flow = b.parentElement;
+      let first = b, last = b;
+      while(first.previousElementSibling?.matches('p.term')) first = first.previousElementSibling;
+      while(last.nextElementSibling?.matches('p.term')) last = last.nextElementSibling;
+      const run = [];
+      for(let n = first; n; n = n.nextElementSibling){ run.push(n); if(n === last) break; }
+      if(run.length < 2){ flash('Only one term entry here'); return; }
+      const after = last.nextElementSibling;
+      const dir = sortRun(run, el=>(el.querySelector('b')?.textContent || el.textContent).replace(/:\s*$/, ''), flow, after);
+      checkFit();
+      flash(run.length + ' terms sorted ' + dir);
+      return;
+    }
+
+    flash('Put the cursor in a list or a run of term entries');
+  },
+  reflow(){
+    const from = picked;
+    const r = reflowFrom(from);
+    if(r.hit){ flash('Reflow stopped early — a block may be taller than a page'); return; }
+    const bits = [];
+    bits.push(r.moves ? r.moves + ' block' + (r.moves>1?'s':'') + ' moved' : 'nothing to move');
+    if(r.culled) bits.push(r.culled + ' empty page' + (r.culled>1?'s':'') + ' removed');
+    flash('Reflowed from page ' + (from+1) + ' — ' + bits.join(', '));
+  }
+});
+
+/* ══════════════════════════════════════════════════════════════
+   CONTENTS AND INDEX — both read straight off the markup, so
+   they cannot fall out of step with the book
+   ══════════════════════════════════════════════════════════════ */
+const navEl = document.getElementById('nav');
+const navScrim = document.getElementById('navScrim');
+const navBd = document.getElementById('navBd');
+let navTab = 'toc';
+
+function jumpEl(el){
+  if(!el) return;
+  closeNav();
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  el.classList.remove('found');
+  void el.offsetWidth;
+  el.classList.add('found');
+  setTimeout(()=>el.classList.remove('found'), 2700);
+}
+
+function tocData(){
+  const out = [];
+  pages().forEach((p, i)=>{
+    const tag = String(i+1).padStart(2,'0');
+    p.querySelectorAll('.flow h2.sec, .flow h3.sub').forEach(h=>{
+      const t = h.textContent.trim();
+      if(t) out.push({el:h, lvl: h.matches('h2.sec') ? 1 : 2, text:t, tag});
+    });
+  });
+  doc.querySelectorAll('.book.open').forEach(b=>{
+    const code = b.dataset.code || '';
+    out.push({el:b, lvl:0, text:b.dataset.title || 'Sub-book', tag:code});
+    [...b.querySelectorAll(':scope > .page')].forEach((p, i)=>{
+      p.querySelectorAll('.flow h2.sec').forEach(h=>{
+        const t = h.textContent.trim();
+        if(t) out.push({el:h, lvl:1, text:t, tag:code + ' ' + (i+1)});
+      });
+    });
+  });
+  return out;
+}
+
+function idxData(){
+  const seen = new Map();
+  buildIndex().forEach(e=>{
+    if(!e.nname) return;
+    if(!seen.has(e.nname)) seen.set(e.nname, {name:e.name, page:e.page, el:e.el, alts:e.alts});
+  });
+  return [...seen.values()].sort((a,b)=> a.name.localeCompare(b.name, undefined, {sensitivity:'base'}));
+}
+
+let navRefs = [];
+function renderNav(){
+  navRefs = [];
+  const esc2 = t => String(t).replace(/[<>&]/g, c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+  let html = '';
+  if(navTab === 'toc'){
+    const rows = tocData();
+    if(!rows.length){
+      html = '<div class="nav-empty">No section heads yet. Insert a Section block and it will appear here.</div>';
+    } else {
+      rows.forEach((r, i)=>{
+        navRefs.push(r.el);
+        html += `<button class="ni l${r.lvl}" data-i="${i}">
+          <span class="nm">${esc2(r.text)}</span>
+          <span class="pg">${esc2(r.tag)}</span></button>`;
+      });
+    }
+  } else {
+    const rows = idxData();
+    if(!rows.length){
+      html = '<div class="nav-empty">Nothing marked as a Source yet. Mark a rule and it lands in the index.</div>';
+    } else {
+      let letter = '';
+      rows.forEach(r=>{
+        const L = (r.name[0] || '?').toUpperCase();
+        if(L !== letter){ letter = L; html += `<div class="letter">${esc2(letter)}</div>`; }
+        const i = navRefs.push(r.el) - 1;
+        const alt = r.alts && r.alts.length ? ` <span style="color:#54707a">· ${esc2(r.alts.join(', '))}</span>` : '';
+        html += `<button class="ni l1" data-i="${i}">
+          <span class="nm">${esc2(r.name)}${alt}</span>
+          <span class="pg">${esc2(r.page)}</span></button>`;
+      });
+    }
+  }
+  navBd.innerHTML = html;
+  document.querySelectorAll('.nav-hd .nt').forEach(b=>b.classList.toggle('on', b.dataset.tab === navTab));
+}
+
+function openNav(){ renderNav(); navEl.classList.add('open'); navScrim.classList.add('open'); }
+function closeNav(){ navEl.classList.remove('open'); navScrim.classList.remove('open'); }
+
+navBd.addEventListener('click', e=>{
+  const b = e.target.closest('.ni');
+  if(b) jumpEl(navRefs[parseInt(b.dataset.i, 10)]);
+});
+document.querySelector('.nav-hd').addEventListener('click', e=>{
+  const t = e.target.closest('.nt');
+  if(t){ navTab = t.dataset.tab; renderNav(); }
+});
+document.getElementById('navX').addEventListener('click', closeNav);
+navScrim.addEventListener('click', closeNav);
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && navEl.classList.contains('open')) closeNav();
+});
+
+/* ══════════════════════════════════════════════════════════════
+   CROSS-REFERENCES — every mention of a marked rule becomes a
+   link to it. First mention per page only, so the text does not
+   turn into a field of underlines.
+   ══════════════════════════════════════════════════════════════ */
+const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+function xrefTargets(){
+  const t = [];
+  [...pages(), ...doc.querySelectorAll('.book.open > .page')].forEach(p=>{
+    p.querySelectorAll('[data-src-name]').forEach(el=>{
+      if(!el.id) return;
+      const names = [el.dataset.srcName, ...(el.dataset.srcAlt || '').split('|')]
+        .map(x=>(x||'').trim()).filter(x=>x.length > 2);
+      names.forEach(n=> t.push({n, id:el.id, el}));
+    });
+  });
+  return t.sort((a,b)=> b.n.length - a.n.length);   /* longest name wins */
+}
+
+function unxref(){
+  document.querySelectorAll('a.xref').forEach(a=>{
+    a.replaceWith(document.createTextNode(a.textContent));
+  });
+  document.querySelectorAll('.flow').forEach(f=>f.normalize());
+}
+
+function xrefAll(){
+  unxref();
+  const targets = xrefTargets();
+  if(!targets.length){ return 0; }
+  let made = 0;
+
+  const scopes = [...pages(), ...doc.querySelectorAll('.book.open > .page')];
+  scopes.forEach(page=>{
+    const done = new Set();
+    const flow = page.querySelector('.flow');
+    if(!flow) return;
+
+    targets.forEach(t=>{
+      if(done.has(t.id)) return;
+      const re = new RegExp('\\b' + reEsc(t.n) + '\\b', 'i');
+
+      const walker = document.createTreeWalker(flow, NodeFilter.SHOW_TEXT, {
+        acceptNode(node){
+          if(!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+          const par = node.parentElement;
+          if(!par) return NodeFilter.FILTER_REJECT;
+          /* never inside a link, a cipher, a marginal hand, a box tab, or the rule itself */
+          if(par.closest('a, .cipher, .marg, .tab, .folio, .runner')) return NodeFilter.FILTER_REJECT;
+          if(par.closest('[data-src-name]')?.id === t.id) return NodeFilter.FILTER_REJECT;
+          return re.test(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+      });
+
+      const node = walker.nextNode();
+      if(!node) return;
+      const m = node.nodeValue.match(re);
+      if(!m) return;
+      const at = m.index;
+      const after = node.splitText(at);
+      after.splitText(m[0].length);
+      const a = document.createElement('a');
+      a.className = 'xref';
+      a.href = '#' + t.id;
+      a.title = t.n;
+      a.textContent = after.nodeValue;
+      after.replaceWith(a);
+      done.add(t.id);
+      made++;
+    });
+  });
+  return made;
+}
+
+doc.addEventListener('click', e=>{
+  const a = e.target.closest('a.xref');
+  if(!a) return;
+  e.preventDefault();
+  const el = document.getElementById(a.getAttribute('href').slice(1));
+  if(el) jumpEl(el);
+});
+
+Object.assign(acts, {
+  contents(){ navEl.classList.contains('open') ? closeNav() : openNav(); },
+  xref(){
+    const n = xrefAll();
+    flash(n ? n + ' cross-references linked' : 'Nothing marked as a Source yet');
+  }
+});
+
+/* ══════════════════════════════════════════════════════════════
+   VECTOR PLATES — inline SVG, so diagrams stay vector all the way
+   to the printer instead of being flattened to a bitmap
+   ══════════════════════════════════════════════════════════════ */
+const svgFile = document.getElementById('svgFile');
+let vecTarget = null;          /* the .vsvg being replaced, or null to insert */
+
+/* an inlined file brings its own ids with it; two charts both defining
+   "hatchA" would silently share the first one's pattern */
+function namespaceIds(root, pfx){
+  const map = new Map();
+  root.querySelectorAll('[id]').forEach(n=>{
+    const old = n.getAttribute('id');
+    if(!old) return;
+    map.set(old, pfx + old);
+    n.setAttribute('id', pfx + old);
+  });
+  if(!map.size) return;
+  const fixUrl = v => v.replace(/url\(\s*['"]?#([^)'"\s]+)['"]?\s*\)/g,
+    (m, id)=> map.has(id) ? `url(#${map.get(id)})` : m);
+  const walk = n=>{
+    [...(n.attributes || [])].forEach(a=>{
+      const name = a.name.toLowerCase();
+      if((name === 'href' || name === 'xlink:href') && a.value.startsWith('#')){
+        const id = a.value.slice(1);
+        if(map.has(id)) n.setAttribute(a.name, '#' + map.get(id));
+      } else if(a.value.includes('url(')){
+        n.setAttribute(a.name, fixUrl(a.value));
+      }
+    });
+    if(n.tagName && n.tagName.toLowerCase() === 'style') n.textContent = fixUrl(n.textContent);
+    [...n.children].forEach(walk);
+  };
+  walk(root);
+}
+
+function sanitizeSVG(text){
+  const parsed = new DOMParser().parseFromString(text, 'image/svg+xml');
+  if(parsed.querySelector('parsererror')) throw new Error('not valid SVG');
+  const el = parsed.documentElement;
+  if(!el || el.tagName.toLowerCase() !== 'svg') throw new Error('no <svg> at the root');
+
+  el.querySelectorAll('script, foreignObject, iframe, audio, video, animate, animateTransform, set')
+    .forEach(n=>n.remove());
+
+  const strip = n=>{
+    [...(n.attributes || [])].forEach(a=>{
+      const name = a.name.toLowerCase();
+      const val = (a.value || '').trim();
+      if(name.startsWith('on')) n.removeAttribute(a.name);
+      else if((name === 'href' || name === 'xlink:href') && !val.startsWith('#')) n.removeAttribute(a.name);
+      else if(/url\(\s*['"]?\s*(https?:)?\/\//i.test(val)) n.removeAttribute(a.name);
+    });
+    [...n.children].forEach(strip);
+  };
+  strip(el);
+
+  /* a viewBox is what makes it scale; derive one if the file lacks it */
+  let vb = el.getAttribute('viewBox');
+  if(!vb){
+    const w = parseFloat(el.getAttribute('width')) || 100;
+    const h = parseFloat(el.getAttribute('height')) || 100;
+    vb = `0 0 ${w} ${h}`;
+    el.setAttribute('viewBox', vb);
+  }
+  const n = vb.split(/[\s,]+/).map(parseFloat);
+  const ratio = (n[2] && n[3]) ? n[2] / n[3] : 1.5;
+
+  el.removeAttribute('width');
+  el.removeAttribute('height');
+  el.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  namespaceIds(el, 'v' + Math.random().toString(36).slice(2, 7) + '-');
+  return {el, ratio};
+}
+
+function insertNode(node){
+  const flow = activeFlow();
+  if(!flow) return null;
+  const s = window.getSelection();
+  let placed = false;
+  if(s && s.rangeCount){
+    const anchor = s.getRangeAt(0).startContainer;
+    if(flow.contains(anchor)){
+      const ref = topBlock(anchor, flow);
+      if(ref){ ref.after(node); placed = true; }
+    }
+  }
+  if(!placed) flow.appendChild(node);
+  checkFit();
+  return node;
+}
+
+async function placeVector(file){
+  if(!file) return;
+  if(!/svg/i.test(file.type) && !/\.svg$/i.test(file.name)){
+    flash('That is not an SVG'); return;
+  }
+  let vec;
+  try{
+    vec = sanitizeSVG(await file.text());
+  }catch(err){
+    flash('Could not read that SVG: ' + err.message); return;
+  }
+  const kb = Math.round(file.size / 1024);
+
+  /* replacing the art on a full page */
+  if(vecTarget && vecTarget.classList.contains('artframe')){
+    vecTarget.innerHTML = '';
+    vecTarget.appendChild(vec.el);
+    vecTarget.closest('.page')?.classList.add('framed', 'hasvec');
+    flash(`Vector art placed · ${kb} KB · stays sharp at any size`);
+    vecTarget = null;
+    return;
+  }
+
+  /* replacing an existing plate */
+  if(vecTarget){
+    vecTarget.innerHTML = '';
+    vecTarget.style.aspectRatio = vec.ratio.toFixed(4);
+    vecTarget.appendChild(vec.el);
+    vecTarget.closest('.vplate')?.classList.remove('empty');
+    checkFit();
+    flash(`Vector replaced · ${kb} KB`);
+    vecTarget = null;
+    return;
+  }
+
+  /* a new plate at the caret */
+  const fig = document.createElement('figure');
+  fig.className = 'vplate';
+  const box = document.createElement('div');
+  box.className = 'vsvg';
+  box.style.aspectRatio = vec.ratio.toFixed(4);
+  box.appendChild(vec.el);
+  const cap = document.createElement('span');
+  cap.className = 'cap';
+  cap.textContent = 'Figure caption';
+  fig.append(box, cap);
+  insertNode(fig);
+  flash(`Vector plate placed · ${kb} KB · prints at full resolution`);
+}
+
+svgFile.addEventListener('change', e=>{
+  placeVector(e.target.files[0]);
+  e.target.value = '';
+});
+
+/* click a plate to swap its drawing */
+doc.addEventListener('click', e=>{
+  if(document.body.classList.contains('reading')) return;
+  const box = e.target.closest('.vplate .vsvg');
+  if(!box) return;
+  vecTarget = box;
+  svgFile.value = '';
+  svgFile.click();
+});
+
+Object.assign(acts, {
+  vplate(){ vecTarget = null; svgFile.value = ''; svgFile.click(); }
+});
 
 /* deep links: yourbook.html#src-infantry */
 window.addEventListener('load', ()=>{
